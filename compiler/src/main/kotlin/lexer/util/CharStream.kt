@@ -7,4 +7,9 @@ interface CharStream{
     fun peek(n: Int = 1): String
     fun eof(): Boolean
     fun compare(str: String): Boolean
+    fun row(): Int
+    fun col(): Int
+    fun currentRow(): Int
+    fun currentCol(): Int
+    fun updatePosition()
 }

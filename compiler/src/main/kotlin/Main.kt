@@ -10,4 +10,5 @@ fun main() {
         .readText()
     )
     val lexer = Lexer(cs)
+    lexer.parse()
 }

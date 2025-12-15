@@ -7,7 +7,7 @@ class Token(
     val column: Int
 ) {
     override fun toString() =
-        "Token(type=${type.name}, text='$text', row=$row, column=$column)"
+        "Token(type=${type.name}, text=\"$text\", row=$row, column=$column)"
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

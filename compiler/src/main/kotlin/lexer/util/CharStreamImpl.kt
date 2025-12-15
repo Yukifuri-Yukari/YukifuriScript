@@ -49,10 +49,6 @@ class CharStreamImpl(
         return ptr >= input.length
     }
 
-    override fun compare(str: String): Boolean {
-        return peek(str.length) == str
-    }
-
     override fun row() = row
 
     override fun col() = col
@@ -60,6 +56,8 @@ class CharStreamImpl(
     override fun currentRow() = currentRow
 
     override fun currentCol() = currentCol
+
+    override fun position() = ptr
 
     override fun updatePosition() {
         row = currentRow

@@ -1,3 +1,14 @@
+// This is a function that prints Hello, World on the screen.
+/*
+  multi
+  lines
+  comment
+  /*
+    with
+    a new domain
+  */
+  inner comment
+*/
 function hello() {
     println("Hello, World!");
 }

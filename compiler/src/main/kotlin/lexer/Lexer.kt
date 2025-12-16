@@ -2,6 +2,7 @@ package yukifuri.script.compiler.lexer
 
 import yukifuri.script.compiler.exception.Diagnostic
 import yukifuri.script.compiler.exception.Diagnostics
+import yukifuri.script.compiler.exception.throwCE
 import yukifuri.script.compiler.lexer.token.Token
 import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.token.TokenType
@@ -15,8 +16,6 @@ class Lexer(
     val tokens = mutableListOf<Token>()
     val stream = TokenStream(listOf())
 
-    private val builder = StringBuilder()
-
     /* Util Functions */
     fun next() = cs.next()
     fun peek() = cs.peek()
@@ -24,65 +23,154 @@ class Lexer(
     fun eof() = cs.eof()
     fun next(n: Int = 1) = cs.next(n)
     fun peek(n: Int = 1) = cs.peek(n)
-    fun make(type: TokenType): Token {
-        return Token(type, builder.toString(), cs.row(), cs.col()).also {
-            clear()
-        }
-    }
-    fun emit(tk: Token) {
-        tokens.add(tk)
-    }
-    private fun collect(n: Int = 1) {
-        builder.append(next(n))
-    }
-    private fun clear() {
-        builder.clear()
-    }
-
     private fun addDiagnostic(message: String) {
         diagnostics.add(
-            Diagnostic.of(cs.row(), cs.col(), tokens.count {
-                    it.type == TokenType.EOL
-                }, message
+            Diagnostic.of(
+                cs.currentRow(),
+                cs.currentCol(),
+                cs.position(),
+                message
             )
         )
     }
-
-    /* Parsing Functions */
-    private fun skipWhiteSpace() {
+    private fun emit(type: TokenType, text: String = "") {
+        val tk = Token(type, text, cs.row(), cs.col())
+        tokens.add(tk)
+        cs.updatePosition()
     }
 
-    private fun skipComment() {
+    /* Parsing Functions */
+    private fun skipWhiteSpace(): Boolean {
+        var executed = false
+        while (!eof() && current() in Const.whitespaces) {
+            if (next() == '\n') emit(TokenType.EOL, "")
+            executed = true
+        }
+        return executed
+    }
+
+    private fun skipComment(): Boolean {
+        if (current() != '/') return false
+        when (peek(2)) {
+            "//" -> {
+                next(2)
+                while (!eof() && current() != '\n') {
+                    next()
+                }
+            }
+
+            "/*" -> {
+                next(2)
+                var domain = 1
+                while (!eof() && domain > 0) {
+                    if (peek(2) == "/*") {
+                        domain++
+                        next(2)
+                    }
+                    if (peek(2) == "*/") {
+                        domain--
+                        next(2)
+                    }
+                    next()
+                }
+            }
+            else -> return false
+        }
+        return true
     }
 
     private fun parseIdentifierAndKeyword() {
+        if (current() !in Const.chars) return
+        val builder = StringBuilder()
+        while (!eof() && current() in Const.charWithNumber) {
+            builder.append(next())
+        }
+        val s = builder.toString()
+        emit(
+            if (s in Const.keywords) TokenType.Keyword
+            else TokenType.Identifier,
+            s
+        )
     }
 
     private fun parseString() {
+        if (current() != '\"') return
+        val isMultiline = peek(3) == "\"\"\""
+        val builder = StringBuilder()
+        if (isMultiline) next(3) else next()
+        while (!eof()) {
+            if (isMultiline && peek(3) == "\"\"\"") next(3).also { break }
+            if (current() == '\\') {
+                next()
+                if (eof()) addDiagnostic(
+                    "Invalid escape sequence cause of incompleted string."
+                ).also { throwCE("Compile Error") }
+                if (current() == '\"') {
+                    builder.append("\\\"")
+                    next()
+                }
+            }
+            if (current() == '\"') next().also { break }
+            builder.append(next())
+        }
     }
 
     private fun parseNumbers() {
+        println("TODO")
     }
 
     private fun parseSimpleTokens() {
+        when (current()) {
+            in "()[]{},;:.?@" -> {
+                val type = when (current()) {
+                    '(' -> TokenType.LParen
+                    ')' -> TokenType.RParen
+                    '[' -> TokenType.LBracket
+                    ']' -> TokenType.RBracket
+                    '{' -> TokenType.LBrace
+                    '}' -> TokenType.RBrace
+                    ',' -> TokenType.Comma
+                    ';' -> TokenType.Semicolon
+                    ':' -> TokenType.Colon
+                    '.' -> TokenType.Dot
+                    '?' -> TokenType.Question
+                    '@' -> TokenType.At
+                    else -> TokenType.Unknown
+                }
+                if (type == TokenType.Unknown)
+                    addDiagnostic("Unknown character '${current()}' at " +
+                            "${cs.currentRow()} : ${cs.currentCol()}")
+                emit(type, next().toString())
+            }
+
+            in Const.operators -> {
+                val op = next()
+                if (!eof() && current() in Const.doubleOperators) {
+                    val dop = "$op${next()}"
+                    emit(TokenType.Operator, dop)
+                    return
+                }
+                emit(TokenType.Operator, op.toString())
+            }
+        }
     }
 
     fun parse() {
         while (!eof()) {
-            skipWhiteSpace()
-            skipComment()
+            while (skipComment() || skipWhiteSpace()) { /* do nothing */ }
+
             val start = cs.peek()
             when (start) {
                 // Identifier & Keyword 标识符 & 关键字
                 in Const.chars -> parseIdentifierAndKeyword()
                 // Numbers (IntegerLiteral, NumberLiteral) 数字
                 in Const.numbers -> parseNumbers()
-                // tring 字符串
+                // String 字符串
                 '\"' -> parseString()
                 // Simple Tokens 简单符号
                 else -> parseSimpleTokens()
             }
         }
-        emit(make(TokenType.EOF))
+        emit(TokenType.EOF)
     }
 }

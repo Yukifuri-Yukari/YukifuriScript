@@ -22,7 +22,7 @@ class Diagnostics(
         for (diagnostic in diagnostics) {
             print(if (diagnostic.level == Diagnostic.Level.Warning) Fore.YELLOW else Fore.RED)
             print("""
-                ${diagnostic.level.name} at $fileName (${diagnostic.row} : ${diagnostic.col}):
+                ${diagnostic.level.name} at $fileName (${diagnostic.row + 1} : ${diagnostic.col + 1}):
                 ${source[diagnostic.position]}
                 ${if (diagnostic.col != 0) " ".repeat(diagnostic.col - 1) else ""}^-This And After
                 ${diagnostic.message}

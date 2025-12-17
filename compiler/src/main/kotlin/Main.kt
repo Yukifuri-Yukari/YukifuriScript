@@ -24,7 +24,6 @@ fun main() {
         println("Parsing Progress terminated with abnormal status.")
         return
     }
-    // printProgress("Parser Result")
     diagnostics.print()
 }
 

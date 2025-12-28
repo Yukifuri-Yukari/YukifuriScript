@@ -3,9 +3,9 @@ package yukifuri.script.compiler.lexer.token
 enum class TokenType {
     Identifier,
     Keyword,
-    IntegerLiteral,
+    Integer,
     StringLiteral,
-    NumberLiteral,
+    Decimal,
     // Operators are +-*/%<>=!&|, += -= etc, && || == != < > <= >= >> <<.
     Operator,
 

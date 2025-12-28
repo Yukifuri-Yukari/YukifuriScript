@@ -9,23 +9,25 @@ class Token(
     override fun toString() =
         "Token(type=${type.name}, text=\"$text\", row=$row, column=$column)"
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is Token) return false
-
-        if (row != other.row) return false
-        if (column != other.column) return false
-        if (type != other.type) return false
-        if (text != other.text) return false
-
-        return true
-    }
-
     override fun hashCode(): Int {
-        var result = row
-        result = 31 * result + column
-        result = 31 * result + type.hashCode()
+        var result = type.hashCode()
         result = 31 * result + text.hashCode()
         return result
+    }
+
+    override operator fun equals(other: Any?): Boolean {
+        if (other is Pair<*, *> && other.first is TokenType && other.second is String) {
+            return type == other.first && (text == other.second || (other.second as String).trim().isEmpty())
+        }
+
+        if (other is TokenType) {
+            return type == other
+        }
+
+        if (other is String) {
+            return text == other
+        }
+
+        return other is Token && type == other.type && text == other.text
     }
 }

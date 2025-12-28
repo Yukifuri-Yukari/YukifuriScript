@@ -13,8 +13,11 @@ class Lexer(
     private val cs: CharStream,
     private val diagnostics: Diagnostics
 ) {
+    companion object {
+        var outputEOL = false
+    }
     val tokens = mutableListOf<Token>()
-    val stream = TokenStream(listOf())
+    var stream = TokenStream(listOf())
 
     /* Util Functions */
     fun next() = cs.next()
@@ -43,7 +46,7 @@ class Lexer(
     private fun skipWhiteSpace(): Boolean {
         var executed = false
         while (!eof() && current() in Const.whitespaces) {
-            if (next() == '\n') emit(TokenType.EOL, "")
+            if (next() == '\n' && outputEOL) emit(TokenType.EOL, "")
             executed = true
         }
         return executed
@@ -115,8 +118,34 @@ class Lexer(
         }
     }
 
+    private fun parseFloatings() {}
+
+    private fun collect(set: Set<Char>): String {
+        val builder = StringBuilder()
+        while (!eof() && current() in set) {
+            builder.append(next())
+        }
+        return builder.toString()
+    }
+
     private fun parseNumbers() {
-        println("TODO")
+        if (current() !in Const.validNumbers) return
+        if (current() == '0') when (val possiblePrefix = peek()) {
+            'x' -> emit(
+                TokenType.Integer,
+                "0${possiblePrefix}${collect(Const.hexNumbers)}"
+            )
+            'o' -> emit(
+                TokenType.Integer,
+                "0${possiblePrefix}${collect(Const.octNumbers)}"
+            )
+            'b' -> emit(
+                TokenType.Integer,
+                "0${possiblePrefix}${collect(Const.binNumbers)}"
+            )
+            '.' -> return parseFloatings()
+        }
+        if (current() == '.') return parseFloatings()
     }
 
     private fun parseSimpleTokens() {
@@ -163,7 +192,7 @@ class Lexer(
             when (start) {
                 // Identifier & Keyword 标识符 & 关键字
                 in Const.chars -> parseIdentifierAndKeyword()
-                // Numbers (IntegerLiteral, NumberLiteral) 数字
+                // Numbers (Integer, Decimal) 数字
                 in Const.numbers -> parseNumbers()
                 // String 字符串
                 '\"' -> parseString()
@@ -172,5 +201,6 @@ class Lexer(
             }
         }
         emit(TokenType.EOF)
+        stream = TokenStream(tokens)
     }
 }

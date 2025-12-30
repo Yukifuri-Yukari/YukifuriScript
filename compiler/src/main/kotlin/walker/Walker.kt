@@ -1,6 +1,7 @@
 package yukifuri.script.compiler.walker
 
 import yukifuri.script.compiler.ast.base.Module
+import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
@@ -9,17 +10,17 @@ import yukifuri.script.compiler.ast.visitor.Visitor
 
 class Walker(val file: YFile) : Visitor {
     val builtin = mapOf(
-        "print" to YFunction(
-            "print", listOf("message" to "String"), "Nothing",
-            object : Module(listOf()) {
+        "println" to YFunction(
+            "println", listOf("message" to "String"), "Nothing",
+            Module(listOf(object : Statement() {
+
                 override fun accept(visitor: Visitor) {
                     // 直接从visitor获取上下文并打印message参数
                     val context = visitor.context()
                     val message = context["message"]
-                    print(message)
-                    super.accept(visitor)
+                    println(message)
                 }
-            }
+            }))
         )
     )
 

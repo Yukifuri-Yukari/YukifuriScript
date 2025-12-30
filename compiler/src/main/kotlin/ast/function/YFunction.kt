@@ -16,7 +16,6 @@ class YFunction(
 
     override fun accept(visitor: Visitor) {
         for (s in body) {
-            println(name)
             s.accept(visitor)
         }
     }

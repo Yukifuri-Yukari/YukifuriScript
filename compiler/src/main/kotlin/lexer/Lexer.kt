@@ -116,6 +116,7 @@ class Lexer(
             if (current() == '\"') next().also { break }
             builder.append(next())
         }
+        emit(TokenType.StringLiteral, builder.toString())
     }
 
     private fun parseFloatings() {}

@@ -4,7 +4,10 @@ import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.YFunction
+import yukifuri.script.compiler.ast.literal.FloatLiteral
+import yukifuri.script.compiler.ast.literal.IntegerLiteral
 import yukifuri.script.compiler.ast.literal.Literal
+import yukifuri.script.compiler.ast.literal.StringLiteral
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 import java.util.Stack
@@ -61,6 +64,48 @@ class Walker(val file: YFile) : Visitor {
 
         // 恢复原始上下文
         context = oldContext
+    }
+
+    var leftLiteral: Literal<*>? = null
+    var result: Any? = null
+
+    override fun visitLiteral(lit: StringLiteral) {
+        if (leftLiteral == null)
+            leftLiteral = lit
+        else {
+            when (leftLiteral) {
+                is StringLiteral -> {
+                    result = (leftLiteral as StringLiteral).get() + lit.get()
+                }
+                else -> throw Exception("Invalid operation")
+            }
+        }
+    }
+
+    override fun visitLiteral(lit: IntegerLiteral) {
+        if (leftLiteral == null)
+            leftLiteral = lit
+        else {
+            when (leftLiteral) {
+                is IntegerLiteral -> {
+                    result = (leftLiteral as IntegerLiteral).get() + lit.get()
+                }
+                else -> throw Exception("Invalid operation")
+            }
+        }
+    }
+
+    override fun visitLiteral(lit: FloatLiteral) {
+        if (leftLiteral == null)
+            leftLiteral = lit
+        else {
+            when (leftLiteral) {
+                is FloatLiteral -> {
+                    result = (leftLiteral as FloatLiteral).get() + lit.get()
+                }
+                else -> throw Exception("Invalid operation")
+            }
+        }
     }
 
     override fun context() = context

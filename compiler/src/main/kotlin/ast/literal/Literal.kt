@@ -5,7 +5,4 @@ import yukifuri.script.compiler.ast.visitor.Visitor
 
 abstract class Literal<T>(protected val value: T) : Expression() {
     fun get() = value
-
-    final override fun accept(visitor: Visitor) {
-    }
 }

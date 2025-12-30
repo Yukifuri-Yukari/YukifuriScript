@@ -5,17 +5,17 @@ import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.YFunction
+import yukifuri.script.compiler.ast.literal.FloatLiteral
+import yukifuri.script.compiler.ast.literal.IntegerLiteral
 import yukifuri.script.compiler.ast.literal.StringLiteral
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.exception.Diagnostics
 import yukifuri.script.compiler.exception.throwCE
 import yukifuri.script.compiler.exception.throwEOF
-import yukifuri.script.compiler.lexer.token.Token
 import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.token.TokenType
+import yukifuri.script.compiler.util.Const
 import yukifuri.script.compiler.util.EnvironmentTable
-import java.util.Stack
-import javax.lang.model.type.NullType
 
 class Parser(
     private val ts: TokenStream,
@@ -75,8 +75,32 @@ class Parser(
     inner class ExpressionParser {
         fun parse(): Expression {
             return when {
-                peek().type == TokenType.StringLiteral -> StringLiteral(next().text)
+                primary() != null -> primary()!!
+                peek().type in arrayOf(TokenType.Integer, TokenType.Decimal, TokenType.LParen) -> binary()
                 else -> TODO()
+            }
+        }
+
+        private fun primary(): Expression? {
+            val n = peek()
+            if (n.type == TokenType.Integer)
+                return IntegerLiteral(n.text.toInt())
+            if (n.type == TokenType.StringLiteral)
+                return StringLiteral(n.text)
+            if (n.type == TokenType.Decimal)
+                return FloatLiteral(n.text.toFloat())
+            return null
+        }
+
+        private fun binary(priority: Int = 0): Expression {
+            val l = primary()
+            if (l == null) throwCE("Expected primary expression, actually ${peek().text}")
+            var op = peek()
+            var opPriority = Const.prioritiesOfOperators[op.text]!!
+            while (op.type == TokenType.Operator && opPriority > priority) {
+                next()
+                val r = binary(opPriority)
+                val expr =
             }
         }
     }

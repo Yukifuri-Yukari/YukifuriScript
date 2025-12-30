@@ -147,6 +147,17 @@ class Lexer(
             '.' -> return parseFloatings()
         }
         if (current() == '.') return parseFloatings()
+        // Cases of int and float starts with '1'..'9'
+        var isFloat = false
+        val builder = StringBuilder()
+        while (!eof() && current() in Const.validNumbers) {
+            if (peek() == '.') {
+                if (isFloat) throwCE("Compile Error: float number cannot have more than one dot.")
+                isFloat = true
+            }
+            builder.append(next())
+        }
+        emit(if (isFloat) TokenType.Decimal else TokenType.Integer, builder.toString())
     }
 
     private fun parseSimpleTokens() {

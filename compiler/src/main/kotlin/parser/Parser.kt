@@ -115,6 +115,7 @@ class Parser(
     private val builder = Module.ModuleBuilder()
 
     private var table = EnvironmentTable()
+
     private lateinit var file: YFile
 
     fun getTable() = table

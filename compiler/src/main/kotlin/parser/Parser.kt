@@ -75,34 +75,9 @@ class Parser(
     inner class ExpressionParser {
         fun parse(): Expression {
             return when {
-                primary() != null -> primary()!!
-                peek().type in arrayOf(TokenType.Integer, TokenType.Decimal, TokenType.LParen) -> binary()
+                peek().type == TokenType.StringLiteral -> StringLiteral(next().text)
                 else -> TODO()
             }
-        }
-
-        private fun primary(): Expression? {
-            val n = peek()
-            if (n.type == TokenType.Integer)
-                return IntegerLiteral(n.text.toInt())
-            if (n.type == TokenType.StringLiteral)
-                return StringLiteral(n.text)
-            if (n.type == TokenType.Decimal)
-                return FloatLiteral(n.text.toFloat())
-            return null
-        }
-
-        private fun binary(priority: Int = 0): Expression {
-            val l = primary()
-            if (l == null) throwCE("Expected primary expression, actually ${peek().text}")
-            var op = peek()
-            var opPriority = Const.prioritiesOfOperators[op.text]!!
-            while (op.type == TokenType.Operator && opPriority > priority) {
-                next()
-                val r = binary(opPriority)
-                val expr = TODO()
-            }
-            TODO()
         }
     }
 

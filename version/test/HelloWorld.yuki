@@ -1,7 +1,7 @@
-function hello() {
-    println("Hello, World!");
+function a() {
+    println("in a...");
 }
 
 function main() {
-    hello();
+    a();
 }

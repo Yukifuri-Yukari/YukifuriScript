@@ -15,9 +15,11 @@ class YFunction(
     fun data() = Data(name, args, returnType)
 
     override fun accept(visitor: Visitor) {
+        visitor.functionStack().push(name)
         for (s in body) {
             s.accept(visitor)
         }
+        visitor.functionStack().pop()
     }
 
     data class Data(
@@ -26,7 +28,7 @@ class YFunction(
         val returnType: String
     ) {
         override fun toString(): String {
-            return "Data(name=$name, args=$args, returnType=$returnType)"
+            return "Function(name=$name, args=$args, returnType=$returnType)"
         }
     }
 }

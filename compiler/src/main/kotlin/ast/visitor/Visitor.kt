@@ -2,6 +2,7 @@ package yukifuri.script.compiler.ast.visitor
 
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.function.FunctionCall
+import java.util.Stack
 
 interface Visitor {
     fun visitStmt(stmt: Statement) {
@@ -14,4 +15,6 @@ interface Visitor {
     fun visitFunctionCall(call: FunctionCall)
 
     fun context(): Map<String, Any?>
+
+    fun functionStack(): Stack<String>
 }

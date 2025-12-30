@@ -7,8 +7,10 @@ import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
+import java.util.Stack
 
 class Walker(val file: YFile) : Visitor {
+    val functionStack = Stack<String>()
     val builtin = mapOf(
         "println" to YFunction(
             "println", listOf("message" to "String"), "Nothing",
@@ -41,6 +43,10 @@ class Walker(val file: YFile) : Visitor {
         val func = file.table.function(call.name) ?: (
                 builtin[call.name] ?: throw Exception("No such function: ${call.name}")
                 )
+        if (functionStack.size >= 400) {
+            println("Stack overflow")
+            throw StackOverflowError()
+        }
         val args = mutableMapOf<String, Any?>()
 
         for ((i, arg) in call.args.withIndex()) {
@@ -51,7 +57,6 @@ class Walker(val file: YFile) : Visitor {
         val oldContext = context
         // 新上下文：参数覆盖当前上下文中的同名变量
         context = args + oldContext
-
         func.accept(this)
 
         // 恢复原始上下文
@@ -59,4 +64,5 @@ class Walker(val file: YFile) : Visitor {
     }
 
     override fun context() = context
+    override fun functionStack() = functionStack
 }

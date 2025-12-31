@@ -4,7 +4,7 @@ import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.visitor.Visitor
 
-class YFunction(
+open class YFunction(
     val name: String,
     val args: List<Pair<String, String>>,
     val returnType: String = "Nothing",

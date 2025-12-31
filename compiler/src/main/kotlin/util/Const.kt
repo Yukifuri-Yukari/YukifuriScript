@@ -19,7 +19,7 @@ object Const {
     fun withUnderscore(set: Set<Char>) = set + '_'
 
     val keywords = setOf(
-        "function", "val", "var", "class"
+        "function", "val", "var", "class", "return"
     )
 
     val operators = setOf(

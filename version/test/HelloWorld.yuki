@@ -6,19 +6,16 @@
     }
 } */
 
-function farewell(y: int) {
-    print("Goodbye, ");
-    println(y);
-}
 
-function hello(a: int) {
-    print("Hello, ");
-    println(a);
-} // 实际上 Type annotation 还没用
+function circleArea(r: int): int {
+    val area = 3.14 * r * r;
+    return area;
+}
 
 function main() {
-    var year = 2025;
-    farewell(year);
-    year++;
-    hello(0x7EA);
+    val r =4;
+    println("r=" + r +", area="+circleArea(r));
+    r = 5;
+    println("r=" + r +", area="+circleArea(r));
 }
+

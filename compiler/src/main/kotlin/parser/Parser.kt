@@ -105,7 +105,15 @@ class Parser(
                 in setOf(
                     TokenType.Integer, TokenType.StringLiteral,
                     TokenType.Decimal, TokenType.LParen, TokenType.Identifier
-                ) -> binary()
+                ) -> {
+                     if (run {
+                         next()
+                         val t = next()
+                         ts.trace(2)
+                         t.type == TokenType.LParen
+                     }) inModule.parse()
+                    else binary()
+                }
                 else -> {
                     println(peek())
                     TODO()
@@ -218,11 +226,6 @@ class Parser(
                 args.add(expression.parse())
             }
             next() // )
-            val semi = next()
-            if (semi.type != TokenType.Semicolon) {
-                addDiagnostic("Expected ;, actually ${semi.text}")
-                throwCE("Expected ;, actually ${semi.text}")
-            }
             return FunctionCall(name, args)
         }
     }

@@ -11,7 +11,7 @@ import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File
 
-val log = false
+val log = true
 
 fun main() {
     val file = File("test/HelloWorld.yuki")

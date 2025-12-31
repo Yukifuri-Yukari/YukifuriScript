@@ -69,7 +69,7 @@ class Walker(val file: YFile) : Visitor {
         // 保存当前上下文
         val oldContext = context
         // 新上下文：参数覆盖当前上下文中的同名变量
-       context = (args + oldContext).toMutableMap()
+        context = args
         func.accept(this)
 
         // 恢复原始上下文

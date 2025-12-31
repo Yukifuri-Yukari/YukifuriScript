@@ -11,6 +11,6 @@ function hello(a: int) {
 function main() {
     var year = 2025;
     farewell(year);
-    // year++;
+    year++;
     hello(2026);
 }

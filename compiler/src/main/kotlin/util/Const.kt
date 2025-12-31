@@ -27,7 +27,7 @@ object Const {
 
     // the operators that can double itself and still be a valid operator, like << >> == || &&
     val doubleOperators = listOf(
-        '<', '>', '=', '&', '|'
+        '<', '>', '=', '&', '|', '+', '-'
     )
 
     // 运算符优先级

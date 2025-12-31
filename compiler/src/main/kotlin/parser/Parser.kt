@@ -98,7 +98,7 @@ class Parser(
                 peek().type == TokenType.Identifier -> {
                     var result = functionCall()
                     if (result != null) return result
-                    return inc()
+                    inc()
                 }
                 peek().text in setOf("var", "val") -> varDecl()
                 else -> {
@@ -110,7 +110,6 @@ class Parser(
 
         private fun inc(): Statement {
             val n = next().text
-            next()
             next()
             return VariableDecl(n, Inc(n), true)
         }

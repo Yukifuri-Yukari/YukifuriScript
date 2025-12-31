@@ -12,7 +12,6 @@ import yukifuri.utils.colorama.Fore
 import java.io.File
 
 val log = true
-    get() = !field
 
 fun main() {
     val file = File("test/HelloWorld.yuki")
@@ -54,7 +53,7 @@ fun tryParser(ts: TokenStream, diagnostics: Diagnostics) {
     printProgress("Parser Result")
     log(parser.getFile())
 
-    val p = Parser(TokenStream( // ((1 + 2) * 3 / 4) * 5 - 6 + 7 * 8
+    /*val p = Parser(TokenStream( // ((1 + 2) * 3 / 4) * 5 - 6 + 7 * 8
         TokenType.LParen to "(",
         TokenType.LParen to "(",
         TokenType.Integer to "1",
@@ -79,7 +78,7 @@ fun tryParser(ts: TokenStream, diagnostics: Diagnostics) {
 
     p.parse()
 
-    println(p.getFile())
+    println(p.getFile())*/
 
     Walker(parser.getFile()).exec()
 }

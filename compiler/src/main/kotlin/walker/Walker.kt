@@ -26,10 +26,22 @@ class Walker(val file: YFile) : Visitor {
                     println(message)
                 }
             }))
+        ),
+        "print" to YFunction(
+            "print", listOf("message" to "String"), "Nothing",
+            Module(listOf(object : Statement() {
+
+                override fun accept(visitor: Visitor) {
+                    // 直接从visitor获取上下文并打印message参数
+                    val context = visitor.context()
+                    val message = context["message"]
+                    print(message)
+                }
+            }))
         )
     )
 
-    var context = mapOf<String, Any?>()
+    var context = mutableMapOf<String, Any?>()
 
     fun exec() {
         if (file.table.function("main") == null) {
@@ -40,9 +52,6 @@ class Walker(val file: YFile) : Visitor {
     }
 
     override fun visitFunctionCall(call: FunctionCall) {
-        if ((call.args.map { it is Literal<*> }).contains(false)) {
-            throw Exception("Arguments must be literal now")
-        }
         val func = file.table.function(call.name) ?: (
                 builtin[call.name] ?: throw Exception("No such function: ${call.name}")
                 )
@@ -53,60 +62,27 @@ class Walker(val file: YFile) : Visitor {
         val args = mutableMapOf<String, Any?>()
 
         for ((i, arg) in call.args.withIndex()) {
-            args[func.args[i].first] = (arg as Literal<*>).get()
+            arg.accept(this)
+            args[func.args[i].first] = getReturn()
         }
 
         // 保存当前上下文
         val oldContext = context
         // 新上下文：参数覆盖当前上下文中的同名变量
-        context = args + oldContext
+       context = (args + oldContext).toMutableMap()
         func.accept(this)
 
         // 恢复原始上下文
         context = oldContext
     }
 
-    var leftLiteral: Literal<*>? = null
     var result: Any? = null
 
-    override fun visitLiteral(lit: StringLiteral) {
-        if (leftLiteral == null)
-            leftLiteral = lit
-        else {
-            when (leftLiteral) {
-                is StringLiteral -> {
-                    result = (leftLiteral as StringLiteral).get() + lit.get()
-                }
-                else -> throw Exception("Invalid operation")
-            }
-        }
+    override fun setReturn(obj: Any?) {
+        result = obj
     }
 
-    override fun visitLiteral(lit: IntegerLiteral) {
-        if (leftLiteral == null)
-            leftLiteral = lit
-        else {
-            when (leftLiteral) {
-                is IntegerLiteral -> {
-                    result = (leftLiteral as IntegerLiteral).get() + lit.get()
-                }
-                else -> throw Exception("Invalid operation")
-            }
-        }
-    }
-
-    override fun visitLiteral(lit: FloatLiteral) {
-        if (leftLiteral == null)
-            leftLiteral = lit
-        else {
-            when (leftLiteral) {
-                is FloatLiteral -> {
-                    result = (leftLiteral as FloatLiteral).get() + lit.get()
-                }
-                else -> throw Exception("Invalid operation")
-            }
-        }
-    }
+    override fun getReturn() = result
 
     override fun context() = context
     override fun functionStack() = functionStack

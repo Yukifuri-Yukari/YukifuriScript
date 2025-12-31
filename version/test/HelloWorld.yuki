@@ -1,7 +1,11 @@
-function a() {
-    println("in a...");
+function hello(a: int) {
+    print("Hello, ");
+    println(a);
 }
 
 function main() {
-    a();
+    var year = 2025;
+    hello(year);
+    year++;
+    hello(year);
 }

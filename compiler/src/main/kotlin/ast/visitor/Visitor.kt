@@ -9,19 +9,11 @@ import yukifuri.script.compiler.ast.literal.StringLiteral
 import java.util.Stack
 
 interface Visitor {
-    fun visitStmt(stmt: Statement) {
-        when (stmt) {
-            is FunctionCall -> visitFunctionCall(stmt)
-            else -> throw Exception("Unknown stmt type: ${stmt::class.simpleName}")
-        }
-    }
-
     fun visitFunctionCall(call: FunctionCall)
 
-    fun visitLiteral(lit: StringLiteral)
-    fun visitLiteral(lit: IntegerLiteral)
-    fun visitLiteral(lit: FloatLiteral)
+    fun setReturn(obj: Any?)
+    fun getReturn(): Any?
 
-    fun context(): Map<String, Any?>
+    fun context(): MutableMap<String, Any?>
     fun functionStack(): Stack<String>
 }

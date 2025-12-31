@@ -18,7 +18,7 @@ object Const {
     fun <T> with(list: List<T>, vararg elements: T) = list + elements
 
     val keywords = listOf(
-        "function"
+        "function", "val", "var"
     )
 
     val operators = listOf(

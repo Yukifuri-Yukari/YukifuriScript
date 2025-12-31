@@ -3,6 +3,8 @@ package yukifuri.script.compiler.parser
 import yukifuri.script.compiler.ast.base.Expression
 import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
+import yukifuri.script.compiler.ast.expr.VariableDecl
+import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.FloatLiteral
@@ -74,8 +76,11 @@ class Parser(
 
     inner class ExpressionParser {
         fun parse(): Expression {
-            return when {
-                peek().type == TokenType.StringLiteral -> StringLiteral(next().text)
+            return when (peek().type) {
+                TokenType.StringLiteral -> StringLiteral(next().text)
+                TokenType.Integer -> IntegerLiteral(next().text.toInt())
+                TokenType.Decimal -> FloatLiteral(next().text.toFloat())
+                TokenType.Identifier -> VariableGet(next().text)
                 else -> TODO()
             }
         }
@@ -85,11 +90,19 @@ class Parser(
         fun parse(): Statement {
             return when {
                 peek().type == TokenType.Identifier -> functionCall()
+                peek().text in setOf("var", "val") -> varDecl()
                 else -> {
-                    println(peek())
                     TODO()
                 }
             }
+        }
+
+        private fun varDecl(): Statement {
+            val mutable = next().text == "var"
+            val name = next().text
+            next()
+            val expr = expression.parse()
+            return VariableDecl(name, expr, mutable)
         }
 
         private fun functionCall(): Statement {
@@ -103,7 +116,7 @@ class Parser(
                 args.add(expression.parse())
             }
             next() // )
-            next() // ;
+            if (next().type != TokenType.Semicolon) throwCE("Expected ;, actually ${next().text}")
             return FunctionCall(name, args)
         }
     }

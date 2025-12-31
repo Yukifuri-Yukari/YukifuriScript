@@ -84,6 +84,6 @@ class Walker(val file: YFile) : Visitor {
 
     override fun getReturn() = result
 
-    override fun context() = context
+    override fun context() = context.also { println(context) }
     override fun functionStack() = functionStack
 }

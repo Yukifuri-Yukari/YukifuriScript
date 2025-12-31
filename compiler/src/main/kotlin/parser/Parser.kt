@@ -111,6 +111,7 @@ class Parser(
         private fun inc(): Statement {
             val n = next().text
             next()
+            next()
             return VariableDecl(n, Inc(n), true)
         }
 
@@ -124,8 +125,9 @@ class Parser(
         }
 
         private fun functionCall(): Statement? {
-            val name = next().text
+            val name = peek().text
             if (peek().type != TokenType.LParen) return null
+            next()
             next() // (
             val args = mutableListOf<Expression>()
 

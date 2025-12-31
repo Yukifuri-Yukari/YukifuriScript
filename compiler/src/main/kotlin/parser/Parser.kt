@@ -5,6 +5,7 @@ import yukifuri.script.compiler.ast.base.Expression
 import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.expr.BinaryExpr
+import yukifuri.script.compiler.ast.expr.UnaryExpr
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
@@ -20,7 +21,7 @@ import yukifuri.script.compiler.exception.throwCE
 import yukifuri.script.compiler.exception.throwEOF
 import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.token.TokenType
-import yukifuri.script.compiler.util.Const.operatorMapping
+import yukifuri.script.compiler.util.Const.OpMapping
 import yukifuri.script.compiler.util.EnvironmentTable
 import yukifuri.script.compiler.util.toInt
 
@@ -47,6 +48,10 @@ class Parser(
         private fun parseOnce(): Statement {
             return when {
                 peek() == TokenType.Keyword to "function" -> functionDeclaration()
+                peek().type == TokenType.Keyword -> when (peek().text) {
+                    in setOf("var", "val") -> inModule.parse()
+                    else -> TODO()
+                }
                 else -> {
                     println(peek())
                     TODO()
@@ -140,7 +145,7 @@ class Parser(
             var r = peek()
             while (r.type == TokenType.Operator) {
                 // 只有在确认为运算符后才去查优先级，避免对非运算符调用 map 导致 NPE
-                val rOp = operatorMapping[r.text]
+                val rOp = OpMapping[r.text]
                 val rPriority = rOp?.priority
                 if (rPriority == null) {
                     addDiagnostic("Unknown operator ${r.text}")
@@ -164,12 +169,10 @@ class Parser(
         fun parse(): Statement {
             return when {
                 peek().type == TokenType.Identifier -> {
-                    val result = functionCall()
+                    var result = functionCall()
                     if (result != null) return result
-
-                    println(peek()  )
-                    throwCE("Expected function call, actually ${peek().text}")
-                    throw Exception()
+                    result = unary()
+                    result
                 }
                 peek().text in setOf("var", "val") -> variable()
                 else -> {
@@ -177,6 +180,15 @@ class Parser(
                     TODO()
                 }
             }
+        }
+
+        private fun unary(): Statement {
+            var oper = if (peek().type == TokenType.Operator) next() else null
+            val id = next().text
+            oper = oper ?: next()
+            next() // ;
+            val op = OpMapping[oper.text]!!
+            return UnaryExpr(op, VariableGet(id)).asStatement()
         }
 
         private fun variable(): Statement {

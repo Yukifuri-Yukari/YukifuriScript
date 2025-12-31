@@ -22,4 +22,7 @@ enum class Operator(
     LogicalAnd(5, "&&"),
     LogicalOr(5, "||"),
     Not(6, "!"),
+
+    Inc(7, "++"),
+    Dec(7, "--"),
 }

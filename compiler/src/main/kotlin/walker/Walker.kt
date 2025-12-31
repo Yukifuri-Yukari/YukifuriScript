@@ -30,11 +30,11 @@ class Walker(val file: YFile) : Visitor {
     val functionStack = Stack<String>()
     val builtin = mapOf(
         simpleFunction(
-            "println", listOf("message" to "String"), "Nothing",
+            "println", listOf("message" to "Any"), "Nothing",
             { visitor -> println(visitor.context()["message"]!!) }
         ),
         simpleFunction(
-            "print", listOf("message" to "String"), "Nothing",
+            "print", listOf("message" to "Any"), "Nothing",
             { visitor -> print(visitor.context()["message"]!!) }
         ),
     )
@@ -61,7 +61,17 @@ class Walker(val file: YFile) : Visitor {
 
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
-            args[func.args[i].first] = getReturn()
+            val ret = getReturn()!!
+            // Check type
+            if (func.args[i].second != "Any") {
+                val type = func.args[i].second
+                when {
+                    (ret is Int && type == "int") ||
+                    (ret is String && type == "String") -> {}
+                    else -> throw Exception("TypeError: ${func.args[i].second} expected, got ${ret::class.simpleName}")
+                }
+            }
+            args[func.args[i].first] = ret
         }
 
         // 保存当前上下文

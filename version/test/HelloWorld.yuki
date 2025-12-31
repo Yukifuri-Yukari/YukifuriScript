@@ -1,4 +1,12 @@
-function farewell(y: Int) {
+/*class Foo(var bar: int, var baz: String) {
+    function fooBar(): String {
+        println(bar);
+        println(baz);
+        return baz;
+    }
+} */
+
+function farewell(y: int) {
     print("Goodbye, ");
     println(y);
 }
@@ -6,7 +14,7 @@ function farewell(y: Int) {
 function hello(a: int) {
     print("Hello, ");
     println(a);
-}
+} // 实际上 Type annotation 还没用
 
 function main() {
     var year = 2025;

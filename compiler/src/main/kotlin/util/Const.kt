@@ -19,7 +19,7 @@ object Const {
     fun withUnderscore(set: Set<Char>) = set + '_'
 
     val keywords = setOf(
-        "function", "val", "var"
+        "function", "val", "var", "class"
     )
 
     val operators = setOf(
@@ -30,22 +30,14 @@ object Const {
         "<<", ">>", "&&", "||", "++", "--"
     )
 
-    val operatorMapping = mapOf(
-        "+" to Operator.Add,
-        "-" to Operator.Sub,
-        "*" to Operator.Mul,
-        "/" to Operator.Div,
-        "%" to Operator.Mod,
-        "<" to Operator.Lt,
-        "<=" to Operator.Lte,
-        ">" to Operator.Gt,
-        ">=" to Operator.Gte,
-        "==" to Operator.Eq,
-        "!=" to Operator.Neq,
-        "&&" to Operator.And,
-        "||" to Operator.Or,
-        "&" to Operator.Lsh,
-        "|" to Operator.Rsh,
-        "!" to Operator.Not
-    )
+    object OpMapping {
+        operator fun get(key: String): Operator? {
+            for (operator in Operator.entries) {
+                if (operator.op == key) {
+                    return operator
+                }
+            }
+            return null
+        }
+    }
 }

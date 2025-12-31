@@ -13,23 +13,29 @@ import java.io.File
 
 val log = true
 
+val file = File("test/HelloWorld.yuki")
+val text = file
+    .bufferedReader()
+    .readLines()
+val diagnostics = Diagnostics(file.canonicalPath, text)
+
 fun main() {
-    val file = File("test/HelloWorld.yuki")
-    val text = file
-        .bufferedReader()
-        .readLines()
-    val cs = CharStreamImpl(text.joinToString("\n"))
-    val diagnostics = Diagnostics(file.canonicalPath, text)
     try {
-        val ts = tryLexer(cs, diagnostics)
-        tryParser(ts, diagnostics)
+        test()
     } catch (e: Exception) {
         println(e.message)
         e.printStackTrace()
     } finally {
-        printProgress("Diagnostics")
-        diagnostics.print()
+        if (diagnostics.get().isNotEmpty()) {
+            printProgress("Diagnostics")
+            diagnostics.print()
+        }
     }
+}
+
+fun test() {
+    val ts = tryLexer()
+    tryParser(ts)
 }
 
 fun printProgress(text: String, indent: Int = 8) {
@@ -43,7 +49,8 @@ fun log(obj: Any?) {
     println(obj)
 }
 
-fun tryLexer(cs: CharStream, diagnostics: Diagnostics): TokenStream {
+fun tryLexer(): TokenStream {
+    val cs = CharStreamImpl(text.joinToString("\n"))
     val lexer = Lexer(cs, diagnostics)
     lexer.parse()
     printProgress("Lexer Result")
@@ -53,7 +60,7 @@ fun tryLexer(cs: CharStream, diagnostics: Diagnostics): TokenStream {
     return lexer.stream
 }
 
-fun tryParser(ts: TokenStream, diagnostics: Diagnostics) {
+fun tryParser(ts: TokenStream) {
     val parser = Parser(ts, diagnostics)
     parser.parse()
     printProgress("Parser Result")

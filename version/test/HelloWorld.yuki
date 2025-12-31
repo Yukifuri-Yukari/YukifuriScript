@@ -1,3 +1,8 @@
+function farewell(y: Int) {
+    print("Goodbye, ");
+    println(y);
+}
+
 function hello(a: int) {
     print("Hello, ");
     println(a);
@@ -5,7 +10,7 @@ function hello(a: int) {
 
 function main() {
     var year = 2025;
-    hello(year);
-    year++;
-    hello(year);
+    farewell(year);
+    // year++;
+    hello(2026);
 }

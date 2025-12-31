@@ -3,6 +3,7 @@ package yukifuri.script.compiler.parser
 import yukifuri.script.compiler.ast.base.Expression
 import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
+import yukifuri.script.compiler.ast.expr.Inc
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
@@ -11,6 +12,8 @@ import yukifuri.script.compiler.ast.literal.FloatLiteral
 import yukifuri.script.compiler.ast.literal.IntegerLiteral
 import yukifuri.script.compiler.ast.literal.StringLiteral
 import yukifuri.script.compiler.ast.structure.YFile
+import yukifuri.script.compiler.exception.Diagnostic
+import yukifuri.script.compiler.exception.Diagnostic.Level
 import yukifuri.script.compiler.exception.Diagnostics
 import yukifuri.script.compiler.exception.throwCE
 import yukifuri.script.compiler.exception.throwEOF
@@ -26,6 +29,9 @@ class Parser(
 
     private fun next() = ts.next()
     private fun peek() = ts.peek()
+    private fun addDiagnostic(message: String, level: Diagnostic.Level = Level.Error) {
+        // diagnostics.add(Diagnostic.of(peek()))
+    }
 
     inner class TopLevelStatementParser {
         fun parse(): Module.ModuleBuilder {
@@ -89,12 +95,24 @@ class Parser(
     inner class InModuleStatementParser {
         fun parse(): Statement {
             return when {
-                peek().type == TokenType.Identifier -> functionCall()
+                peek().type == TokenType.Identifier -> {
+                    var result = functionCall()
+                    if (result != null) return result
+                    return inc()
+                }
                 peek().text in setOf("var", "val") -> varDecl()
                 else -> {
+                    println(peek())
                     TODO()
                 }
             }
+        }
+
+        private fun inc(): Statement {
+            val n = next().text
+            next()
+            next()
+            return VariableDecl(n, Inc(n), true)
         }
 
         private fun varDecl(): Statement {
@@ -102,12 +120,13 @@ class Parser(
             val name = next().text
             next()
             val expr = expression.parse()
+            if (next().type != TokenType.Semicolon) throwCE()
             return VariableDecl(name, expr, mutable)
         }
 
-        private fun functionCall(): Statement {
+        private fun functionCall(): Statement? {
             val name = next().text
-            if (peek().type != TokenType.LParen) throwCE("Expected (, actually ${peek().text}")
+            if (peek().type != TokenType.LParen) return null
             next() // (
             val args = mutableListOf<Expression>()
 

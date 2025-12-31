@@ -23,8 +23,8 @@ class Diagnostics(
             print(if (diagnostic.level == Diagnostic.Level.Warning) Fore.YELLOW else Fore.RED)
             print("""
                 ${diagnostic.level.name} at $fileName (${diagnostic.row + 1} : ${diagnostic.col + 1}):
-                ${source[diagnostic.position]}
-                ${if (diagnostic.col != 0) " ".repeat(diagnostic.col - 1) else ""}^-This And After
+                ${source[diagnostic.row]}
+                ${" ".repeat(diagnostic.col)}^-This And After
                 ${diagnostic.message}
                 ----------
                 """.trimIndent())

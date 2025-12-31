@@ -13,32 +13,30 @@ import yukifuri.script.compiler.ast.visitor.Visitor
 import java.util.Stack
 
 class Walker(val file: YFile) : Visitor {
+    private fun simpleFunction(
+        name: String,
+        args: List<Pair<String, String>>,
+        returnType: String = "Nothing",
+        body: (Visitor) -> Unit
+    ): Pair<String, YFunction> = name to YFunction(
+        name, args, returnType,
+        Module(listOf(object : Statement() {
+            override fun accept(visitor: Visitor) {
+                body(visitor)
+            }
+        }))
+    )
+
     val functionStack = Stack<String>()
     val builtin = mapOf(
-        "println" to YFunction(
+        simpleFunction(
             "println", listOf("message" to "String"), "Nothing",
-            Module(listOf(object : Statement() {
-
-                override fun accept(visitor: Visitor) {
-                    // 直接从visitor获取上下文并打印message参数
-                    val context = visitor.context()
-                    val message = context["message"]
-                    println(message)
-                }
-            }))
+            { visitor -> println(visitor.context()["message"]!!) }
         ),
-        "print" to YFunction(
+        simpleFunction(
             "print", listOf("message" to "String"), "Nothing",
-            Module(listOf(object : Statement() {
-
-                override fun accept(visitor: Visitor) {
-                    // 直接从visitor获取上下文并打印message参数
-                    val context = visitor.context()
-                    val message = context["message"]
-                    print(message)
-                }
-            }))
-        )
+            { visitor -> print(visitor.context()["message"]!!) }
+        ),
     )
 
     var context = mutableMapOf<String, Any?>()
@@ -84,6 +82,6 @@ class Walker(val file: YFile) : Visitor {
 
     override fun getReturn() = result
 
-    override fun context() = context.also { println(context) }
+    override fun context() = context
     override fun functionStack() = functionStack
 }

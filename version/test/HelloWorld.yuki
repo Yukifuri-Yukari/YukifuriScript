@@ -12,5 +12,5 @@ function main() {
     var year = 2025;
     farewell(year);
     year++;
-    hello(2026);
+    hello(0x7EA);
 }

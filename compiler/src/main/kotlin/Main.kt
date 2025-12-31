@@ -20,10 +20,16 @@ fun main() {
         .readLines()
     val cs = CharStreamImpl(text.joinToString("\n"))
     val diagnostics = Diagnostics(file.canonicalPath, text)
-
-    val ts = tryLexer(cs, diagnostics)
-    tryParser(ts, diagnostics)
-    diagnostics.print()
+    try {
+        val ts = tryLexer(cs, diagnostics)
+        tryParser(ts, diagnostics)
+    } catch (e: Exception) {
+        println(e.message)
+        e.printStackTrace()
+    } finally {
+        printProgress("Diagnostics")
+        diagnostics.print()
+    }
 }
 
 fun printProgress(text: String, indent: Int = 8) {
@@ -52,33 +58,6 @@ fun tryParser(ts: TokenStream, diagnostics: Diagnostics) {
     parser.parse()
     printProgress("Parser Result")
     log(parser.getFile())
-
-    /*val p = Parser(TokenStream( // ((1 + 2) * 3 / 4) * 5 - 6 + 7 * 8
-        TokenType.LParen to "(",
-        TokenType.LParen to "(",
-        TokenType.Integer to "1",
-        TokenType.Operator to "+",
-        TokenType.Integer to "2",
-        TokenType.Operator to "*",
-        TokenType.Integer to "3",
-        TokenType.Operator to "/",
-        TokenType.Integer to "4",
-        TokenType.RParen to ")",
-        TokenType.Operator to "*",
-        TokenType.Integer to "5",
-        TokenType.Operator to "-",
-        TokenType.Integer to "6",
-        TokenType.RParen to ")",
-        TokenType.Operator to "+",
-        TokenType.Integer to "7",
-        TokenType.Operator to "*",
-        TokenType.Integer to "8",
-        TokenType.EOF to "",
-    ), diagnostics)
-
-    p.parse()
-
-    println(p.getFile())*/
 
     Walker(parser.getFile()).exec()
 }

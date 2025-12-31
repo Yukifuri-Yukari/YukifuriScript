@@ -1,9 +1,12 @@
 package yukifuri.script.compiler.util
 
-object Const {
-    val chars = ('a' .. 'z') + ('A' .. 'Z') + '_'
+import yukifuri.script.compiler.ast.base.Operator
 
-    val numbers = ('0' .. '9').toSet()
+object Const {
+    val chars = (('a' .. 'z') + ('A' .. 'Z') + '_').toSet()
+
+    val numbers = (('0' .. '9') + '.').toSet()
+    val scientificNotation = withUnderscore(numbers + 'e' + 'E' + '+' + '-')
     val validNumbers = withUnderscore(numbers)
     val hexNumbers = validNumbers + ('a' .. 'f') + ('A' .. 'F')
     val octNumbers = withUnderscore(('0' .. '7').toSet())
@@ -11,34 +14,38 @@ object Const {
 
     val charWithNumber = chars + numbers
 
-    val whitespaces = listOf(' ', '\t', '\r', '\n')
+    val whitespaces = setOf(' ', '\t', '\r', '\n')
 
     fun withUnderscore(set: Set<Char>) = set + '_'
 
-    fun <T> with(list: List<T>, vararg elements: T) = list + elements
-
-    val keywords = listOf(
+    val keywords = setOf(
         "function", "val", "var"
     )
 
-    val operators = listOf(
+    val operators = setOf(
         '+', '-', '*', '/', '%', '<', '>', '=', '!', '&', '|'
     )
 
-    // the operators that can double itself and still be a valid operator, like << >> == || &&
-    val doubleOperators = listOf(
-        '<', '>', '=', '&', '|', '+', '-'
+    val mulOperators = setOf(
+        "<<", ">>", "&&", "||", "++", "--"
     )
 
-    // 运算符优先级
-    val prioritiesOfOperators = mapOf(
-        "+" to 0, "-" to 0,
-        "*" to 1, "/" to 1, "%" to 1,
-        "<" to 2, ">" to 2, "=" to 2,
-        "&" to 3, "|" to 3,
-        "<<" to 4, ">>" to 4,
-        "==" to 5, "!=" to 5,
-        "!" to 6, "&&" to 6,
-        "||" to 7,
+    val operatorMapping = mapOf(
+        "+" to Operator.Add,
+        "-" to Operator.Sub,
+        "*" to Operator.Mul,
+        "/" to Operator.Div,
+        "%" to Operator.Mod,
+        "<" to Operator.Lt,
+        "<=" to Operator.Lte,
+        ">" to Operator.Gt,
+        ">=" to Operator.Gte,
+        "==" to Operator.Eq,
+        "!=" to Operator.Neq,
+        "&&" to Operator.And,
+        "||" to Operator.Or,
+        "&" to Operator.Lsh,
+        "|" to Operator.Rsh,
+        "!" to Operator.Not
     )
 }

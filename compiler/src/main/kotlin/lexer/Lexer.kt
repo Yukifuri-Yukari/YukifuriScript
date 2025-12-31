@@ -31,7 +31,6 @@ class Lexer(
             Diagnostic.of(
                 cs.currentRow(),
                 cs.currentCol(),
-                cs.position(),
                 message
             )
         )
@@ -119,7 +118,39 @@ class Lexer(
         emit(TokenType.StringLiteral, builder.toString())
     }
 
-    private fun parseFloatings() {}
+    private fun parseFloatings(start: String = "") {
+        val builder = StringBuilder()
+        builder.append(start)
+        var hasE = false
+        var hasDot = '.' in start
+        while (!eof() && current() in Const.scientificNotation) {
+            when (current().lowercaseChar()) {
+                'e' -> {
+                    if (hasE) {
+                        addDiagnostic("Invalid floating point number.")
+                        throwCE("Compile Error")
+                    }
+                    hasE = true
+                    builder.append(next())
+                    if (peek() == '_') {
+                        addDiagnostic("Invalid usage of underscore in scientific notation.")
+                        throwCE("Compile Error")
+                    }
+                    builder.append(next())
+                    continue
+                }
+                '.' -> {
+                    if (hasDot) {
+                        addDiagnostic("Invalid floating point number.")
+                        throwCE("Compile Error")
+                    }
+                    hasDot = true
+                }
+            }
+            builder.append(next())
+        }
+        emit(TokenType.Decimal, builder.toString())
+    }
 
     private fun collect(set: Set<Char>): String {
         val builder = StringBuilder()
@@ -131,33 +162,33 @@ class Lexer(
 
     private fun parseNumbers() {
         if (current() !in Const.validNumbers) return
-        if (current() == '0') when (val possiblePrefix = peek()) {
-            'x' -> emit(
+        if (current() == '.') return parseFloatings()
+        if (current() == '0') when (val possiblePrefix = next(2)[1]) {
+            'x' -> return emit(
                 TokenType.Integer,
                 "0${possiblePrefix}${collect(Const.hexNumbers)}"
             )
-            'o' -> emit(
+            'o' -> return emit(
                 TokenType.Integer,
                 "0${possiblePrefix}${collect(Const.octNumbers)}"
             )
-            'b' -> emit(
+            'b' -> return emit(
                 TokenType.Integer,
                 "0${possiblePrefix}${collect(Const.binNumbers)}"
             )
             '.' -> return parseFloatings()
         }
-        if (current() == '.') return parseFloatings()
-        // Cases of int and float starts with '1'..'9'
-        var isFloat = false
+        // Cases of int and float starts with '1' .. '9'
         val builder = StringBuilder()
-        while (!eof() && current() in Const.validNumbers) {
-            if (peek() == '.') {
-                if (isFloat) throwCE("Compile Error: float number cannot have more than one dot.")
-                isFloat = true
+        while (!eof()) {
+            if (peek() in setOf('e', '.', 'E')) {
+                return parseFloatings(builder.toString())
             }
+            if (current() !in Const.validNumbers)
+                break
             builder.append(next())
         }
-        emit(if (isFloat) TokenType.Decimal else TokenType.Integer, builder.toString())
+        emit(TokenType.Integer, builder.toString())
     }
 
     private fun parseSimpleTokens() {
@@ -186,7 +217,7 @@ class Lexer(
 
             in Const.operators -> {
                 val op = next()
-                if (!eof() && current() in Const.doubleOperators) {
+                if (!eof() && (op.toString() + current()) in Const.mulOperators) {
                     val dop = "$op${next()}"
                     emit(TokenType.Operator, dop)
                     return

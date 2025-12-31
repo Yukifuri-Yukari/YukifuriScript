@@ -24,4 +24,8 @@ class TokenStream(
     fun eof(): Boolean {
         return ptr >= tokens.size
     }
+
+    fun trace(cnt: Int = 1) {
+        ptr -= cnt
+    }
 }

@@ -21,6 +21,11 @@ function main() {
     println("r=" + r + ", area=" + circleArea(r));
 }*/
 
+function a() {
+    println("in a...");
+}
+
 function main() {
+    a();
     println("Hello, World!");
 }

@@ -52,6 +52,7 @@ class Lexer(
     }
 
     private fun skipComment(): Boolean {
+        if (eof()) return false
         if (current() != '/') return false
         when (peek(2)) {
             "//" -> {
@@ -67,11 +68,11 @@ class Lexer(
                 while (!eof() && domain > 0) {
                     if (peek(2) == "/*") {
                         domain++
-                        next(2)
+                        next(1)
                     }
                     if (peek(2) == "*/") {
                         domain--
-                        next(2)
+                        next(1)
                     }
                     next()
                 }
@@ -228,10 +229,11 @@ class Lexer(
     }
 
     fun parse() {
-        while (!eof()) {
-            while (skipComment() || skipWhiteSpace()) { /* do nothing */ }
+        while (true) {
+            while (skipWhiteSpace() || skipComment()) { /* do nothing */ }
+            if (eof()) break
 
-            val start = cs.peek()
+            val start = peek()
             when (start) {
                 // Identifier & Keyword 标识符 & 关键字
                 in Const.chars -> parseIdentifierAndKeyword()

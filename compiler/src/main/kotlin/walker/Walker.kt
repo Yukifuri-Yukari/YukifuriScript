@@ -57,6 +57,11 @@ class Walker(val file: YFile) : Visitor {
             println("Stack overflow")
             throw StackOverflowError()
         }
+
+        if (call.args.size != func.args.size) {
+            throw Exception("Argument count mismatch: \n${call.args.map { it.javaClass.simpleName }}, \n${func.args}")
+        }
+
         val args = mutableMapOf<String, Any?>()
 
         for ((i, arg) in call.args.withIndex()) {

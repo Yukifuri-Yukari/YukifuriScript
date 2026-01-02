@@ -10,4 +10,8 @@ class Return(
     override fun accept(visitor: Visitor) {
         expr.accept(visitor)
     }
+
+    override fun toString(): String {
+        return "Return(expr=$expr)"
+    }
 }

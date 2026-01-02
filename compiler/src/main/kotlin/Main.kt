@@ -3,8 +3,6 @@ package yukifuri.script.compiler
 import yukifuri.script.compiler.exception.Diagnostics
 import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.token.TokenStream
-import yukifuri.script.compiler.lexer.token.TokenType
-import yukifuri.script.compiler.lexer.util.CharStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
 import yukifuri.script.compiler.walker.Walker
@@ -64,7 +62,7 @@ fun tryParser(ts: TokenStream) {
     val parser = Parser(ts, diagnostics)
     parser.parse()
     printProgress("Parser Result")
-    log(parser.getFile())
+    log(parser.file())
 
-    Walker(parser.getFile()).exec()
+    Walker(parser.file()).exec()
 }

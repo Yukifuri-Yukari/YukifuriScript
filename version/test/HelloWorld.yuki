@@ -1,21 +1,26 @@
-/*class Foo(var bar: int, var baz: String) {
+/*/*
+class Foo(var bar: int, var baz: String) {
     function fooBar(): String {
         println(bar);
         println(baz);
         return baz;
     }
-} */
+}
+*/
 
 
-function circleArea(r: int): int {
+function circleArea(r: int): float {
     val area = 3.14 * r * r;
     return area;
 }
 
 function main() {
-    val r =4;
-    println("r=" + r +", area="+circleArea(r));
+    val r = 4;
+    println("r=" + r + ", area=" + circleArea(r));
     r = 5;
-    println("r=" + r +", area="+circleArea(r));
-}
+    println("r=" + r + ", area=" + circleArea(r));
+}*/
 
+function main() {
+    println("Hello, World!");
+}

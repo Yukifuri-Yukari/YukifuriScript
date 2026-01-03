@@ -15,8 +15,16 @@ abstract class SubParser(
         self.addAndError(message)
     }
     protected val ts = self.ts
-    protected val diagnostics = self.diagnostics
-    protected val expr = self.expr
-    protected val stmt = self.stmt
-    protected val topLevel = self.topLevel
+    protected val diagnostics by lazy {
+        self.diagnostics
+    }
+    protected val expr by lazy {
+        self.expr
+    }
+    protected val stmt by lazy {
+        self.stmt
+    }
+    protected val topLevel by lazy {
+        self.topLevel
+    }
 }

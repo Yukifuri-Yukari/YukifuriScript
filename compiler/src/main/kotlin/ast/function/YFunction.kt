@@ -15,11 +15,7 @@ open class YFunction(
     fun data() = Data(name, args, returnType)
 
     override fun accept(visitor: Visitor) {
-        visitor.functionStack().push(name)
-        for (s in body) {
-            s.accept(visitor)
-        }
-        visitor.functionStack().pop()
+        visitor.functionDecl(this)
     }
 
     data class Data(

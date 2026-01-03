@@ -15,7 +15,7 @@ val file = File("test/HelloWorld.yuki")
 val text = file
     .bufferedReader()
     .readLines()
-val diagnostics = Diagnostics(file.canonicalPath, text)
+val diagnostics = Diagnostics(file.name, text)
 
 fun main() {
     try {

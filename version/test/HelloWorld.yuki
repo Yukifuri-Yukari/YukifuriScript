@@ -1,4 +1,4 @@
-/*/*
+/*
 class Foo(var bar: int, var baz: String) {
     function fooBar(): String {
         println(bar);
@@ -8,6 +8,7 @@ class Foo(var bar: int, var baz: String) {
 }
 */
 
+var r: int = 0;
 
 function circleArea(r: int): float {
     val area = 3.14 * r * r;
@@ -15,17 +16,8 @@ function circleArea(r: int): float {
 }
 
 function main() {
-    val r = 4;
+    r = 4;
     println("r=" + r + ", area=" + circleArea(r));
     r = 5;
     println("r=" + r + ", area=" + circleArea(r));
-}*/
-
-function a() {
-    println("in a...");
-}
-
-function main() {
-    a();
-    println("Hello, World!");
 }

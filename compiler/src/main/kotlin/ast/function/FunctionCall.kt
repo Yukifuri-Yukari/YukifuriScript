@@ -13,6 +13,6 @@ class FunctionCall(
     }
 
     override fun accept(visitor: Visitor) {
-        visitor.visitFunctionCall(this)
+        visitor.functionCall(this)
     }
 }

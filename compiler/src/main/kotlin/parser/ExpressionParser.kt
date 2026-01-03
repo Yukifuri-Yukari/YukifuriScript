@@ -19,17 +19,43 @@ class ExpressionParser(
 ) : SubParser(self) {
     fun parse(): Expression {
         return when {
-            /* peek().type in setOf(
+            peek().type in setOf(
                 TokenType.LParen, TokenType.Identifier, TokenType.Integer,
                 TokenType.StringLiteral, TokenType.Decimal
-            ) -> primary() */
-            peek().type == TokenType.StringLiteral -> StringLiteral(next().text)
+            ) -> primaryOrBinary()
             else -> TODO()
         }
     }
 
+    fun primaryOrBinary(): Expression {
+        if (peek().type == TokenType.LParen) {
+            next()
+            return primaryOrBinary().also { next() /* ) */ }
+        }
+        next()
+        val peekType = peek().type
+        self.ts.trace()
+        if (peekType == TokenType.Operator) {
+            return binary()
+        }
+        return primary()!!
+    }
+
     fun primary(): Expression? {
-        TODO()
+        /* Must not start with LParen ( ( )! */
+        return when (peek().type) {
+            TokenType.Identifier -> {
+                val name = next().text
+                if (peek().type == TokenType.LParen) {
+                    self.ts.trace()
+                    functionCall()
+                } else VariableGet(name)
+            }
+            TokenType.Integer -> IntegerLiteral(toInt(next().text))
+            TokenType.Decimal -> FloatLiteral(next().text.toFloat())
+            TokenType.StringLiteral -> StringLiteral(next().text)
+            else -> null
+        }
     }
 
     fun functionCall(): Statement {

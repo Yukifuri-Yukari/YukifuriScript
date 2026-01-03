@@ -26,18 +26,25 @@ object Const {
         '+', '-', '*', '/', '%', '<', '>', '=', '!', '&', '|'
     )
 
-    val mulOperators = setOf(
-        "<<", ">>", "&&", "||", "++", "--"
-    )
+    val mulOperators = run {
+        OpMapping.map.values.filter {
+            it.op.length > 1
+        }.map { it.op }.sortedByDescending {
+            it.length
+        }
+    }
 
     object OpMapping {
-        operator fun get(key: String): Operator? {
+        val map = run {
+            val map = mutableMapOf<String, Operator>()
             for (operator in Operator.entries) {
-                if (operator.op == key) {
-                    return operator
-                }
+                map[operator.op] = operator
             }
-            return null
+            return@run map
+        }
+
+        operator fun get(key: String): Operator? {
+            return map[key]
         }
     }
 }

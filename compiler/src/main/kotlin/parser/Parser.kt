@@ -28,8 +28,8 @@ class Parser(
     }
 
     val topLevel = TopLevelParser(this)
-    val expr = ExpressionParser(this)
     val stmt = StatementParser(this)
+    val expr = ExpressionParser(this)
 
     private val builder = Module.ModuleBuilder()
 

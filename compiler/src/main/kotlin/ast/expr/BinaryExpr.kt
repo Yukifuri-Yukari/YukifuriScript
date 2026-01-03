@@ -25,11 +25,13 @@ class BinaryExpr(
                 if (left is String || right is String)
                     left.toString() + right.toString()
                 else
-                    (left as Int) + (right as Int)
+                    (left as Number).toDouble() + (right as Number).toDouble()
             }
             Operator.Sub, Operator.Mul, Operator.Div -> {
-                left as Int
-                right as Int
+                left as Number
+                right as Number
+                val left = left.toDouble()
+                val right = right.toDouble()
                 when (operator) {
                     Operator.Sub -> left - right
                     Operator.Mul -> left * right

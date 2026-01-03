@@ -5,6 +5,11 @@ enum class Operator(
     val op: String,
 ) {
     Assign(0, "="),
+    AddAssign(0, "+="),
+    SubAssign(0, "-="),
+    MulAssign(0, "*="),
+    DivAssign(0, "/="),
+    ModAssign(0, "%="),
     Add(1, "+"),
     Sub(1, "-"),
     Mul(2, "*"),

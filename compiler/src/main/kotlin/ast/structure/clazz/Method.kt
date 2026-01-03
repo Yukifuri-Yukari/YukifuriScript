@@ -8,5 +8,4 @@ class Method(
     args: List<Pair<String, String>>,
     returnType: String = "Nothing",
     body: Module
-) : YFunction(name, args, returnType, body) {
-}
+) : YFunction(name, args, returnType, body)

@@ -1,5 +1,6 @@
 package yukifuri.script.compiler.lexer
 
+import yukifuri.script.compiler.ast.literal.IntegerLiteral
 import yukifuri.script.compiler.exception.Diagnostic
 import yukifuri.script.compiler.exception.Diagnostics
 import yukifuri.script.compiler.exception.throwCE
@@ -164,20 +165,24 @@ class Lexer(
     private fun parseNumbers() {
         if (current() !in Const.validNumbers) return
         if (current() == '.') return parseFloatings()
-        if (current() == '0') when (val possiblePrefix = next(2)[1]) {
-            'x' -> return emit(
-                TokenType.Integer,
-                "0${possiblePrefix}${collect(Const.hexNumbers)}"
-            )
-            'o' -> return emit(
-                TokenType.Integer,
-                "0${possiblePrefix}${collect(Const.octNumbers)}"
-            )
-            'b' -> return emit(
-                TokenType.Integer,
-                "0${possiblePrefix}${collect(Const.binNumbers)}"
-            )
-            '.' -> return parseFloatings()
+        if (current() == '0') {
+            next()
+            if (current() !in Const.numbers) return emit(TokenType.Integer, "0")
+            when (val possiblePrefix = next()) {
+                'x' -> return emit(
+                    TokenType.Integer,
+                    "0$possiblePrefix${collect(Const.hexNumbers)}"
+                )
+                'o' -> return emit(
+                    TokenType.Integer,
+                    "0$possiblePrefix${collect(Const.octNumbers)}"
+                )
+                'b' -> return emit(
+                    TokenType.Integer,
+                    "0$possiblePrefix${collect(Const.binNumbers)}"
+                )
+                '.' -> return parseFloatings()
+            }
         }
         // Cases of int and float starts with '1' .. '9'
         val builder = StringBuilder()
@@ -218,10 +223,16 @@ class Lexer(
 
             in Const.operators -> {
                 val op = next()
-                if (!eof() && (op.toString() + current()) in Const.mulOperators) {
-                    val dop = "$op${next()}"
-                    emit(TokenType.Operator, dop)
-                    return
+//                if (!eof() && (op.toString() + current()) in Const.mulOperators) {
+//                    val dop = "$op${next()}"
+//                    emit(TokenType.Operator, dop)
+//                    return
+//                }
+                for (i in Const.mulOperators) {
+                    if (i == op + peek(i.length - 1)) {
+                        emit(TokenType.Operator, i)
+                        return
+                    }
                 }
                 emit(TokenType.Operator, op.toString())
             }

@@ -1,19 +1,22 @@
 package yukifuri.script.compiler.ast.visitor
 
-import yukifuri.script.compiler.ast.base.Statement
+import yukifuri.script.compiler.ast.expr.BinaryExpr
+import yukifuri.script.compiler.ast.expr.VariableAssign
+import yukifuri.script.compiler.ast.expr.VariableDecl
+import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
-import yukifuri.script.compiler.ast.literal.FloatLiteral
-import yukifuri.script.compiler.ast.literal.IntegerLiteral
+import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
-import yukifuri.script.compiler.ast.literal.StringLiteral
 import java.util.Stack
 
 interface Visitor {
-    fun visitFunctionCall(call: FunctionCall)
+    fun functionDecl(decl: YFunction)
+    fun functionCall(call: FunctionCall)
 
-    fun setReturn(obj: Any?)
-    fun getReturn(): Any?
+    fun literal(literal: Literal<*>, type: Class<*>)
+    fun binaryExpr(expr: BinaryExpr)
 
-    fun context(): MutableMap<String, Any?>
-    fun functionStack(): Stack<String>
+    fun getVariable(get: VariableGet)
+    fun declareVariable(decl: VariableDecl)
+    fun assignVariable(assign: VariableAssign)
 }

@@ -31,15 +31,15 @@ class Walker(val file: YFile) : Visitor {
     val builtin = mapOf(
         simpleFunction(
             "println", listOf("message" to "Any"), "Nothing",
-            { visitor -> println(visitor.context()["message"]!!) }
+            { visitor -> println(visitor.context()["message"]!!.first) }
         ),
         simpleFunction(
             "print", listOf("message" to "Any"), "Nothing",
-            { visitor -> print(visitor.context()["message"]!!) }
+            { visitor -> print(visitor.context()["message"]!!.first) }
         ),
     )
 
-    var context = mutableMapOf<String, Any?>()
+    var context = mutableMapOf<String, Pair<Any?, Boolean>>()
 
     fun exec() {
         if (file.table.function("main") == null) {
@@ -49,12 +49,15 @@ class Walker(val file: YFile) : Visitor {
         main.accept(this)
     }
 
-    override fun visitFunctionCall(call: FunctionCall) {
+    override fun functionCall(call: FunctionCall) {
         val func = file.table.function(call.name) ?: (
                 builtin[call.name] ?: throw Exception("No such function: ${call.name}")
                 )
         if (functionStack.size >= 400) {
             println("Stack overflow")
+            println("""Exception in thread "main" StackOverflowError
+${functionStack.reversed().joinToString("\n") { "    at $it" }} 
+""")
             throw StackOverflowError()
         }
 
@@ -62,7 +65,7 @@ class Walker(val file: YFile) : Visitor {
             throw Exception("Argument count mismatch: \n${call.args.map { it.javaClass.simpleName }}, \n${func.args}")
         }
 
-        val args = mutableMapOf<String, Any?>()
+        val args = mutableMapOf<String, Pair<Any?, Boolean>>()
 
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
@@ -76,7 +79,7 @@ class Walker(val file: YFile) : Visitor {
                     else -> throw Exception("TypeError: ${func.args[i].second} expected, got ${ret::class.simpleName}")
                 }
             }
-            args[func.args[i].first] = ret
+            args[func.args[i].first] = ret to false
         }
 
         // 保存当前上下文
@@ -88,15 +91,4 @@ class Walker(val file: YFile) : Visitor {
         // 恢复原始上下文
         context = oldContext
     }
-
-    var result: Any? = null
-
-    override fun setReturn(obj: Any?) {
-        result = obj
-    }
-
-    override fun getReturn() = result
-
-    override fun context() = context
-    override fun functionStack() = functionStack
 }

@@ -8,7 +8,7 @@ class Return(
     val expr: Expression
 ) : Statement() {
     override fun accept(visitor: Visitor) {
-        expr.accept(visitor)
+        visitor.functionReturn(this)
     }
 
     override fun toString(): String {

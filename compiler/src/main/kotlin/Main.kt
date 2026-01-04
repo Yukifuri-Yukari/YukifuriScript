@@ -66,8 +66,7 @@ fun tryParser(ts: TokenStream) {
 
     IRGenerator(parser.file()).use {
         it.exec()
-        it.code.forEach { it1 ->
-            println(it1)
-        }
+        printProgress("IR Generator Result")
+        log(it.code.joinToString("\n"))
     }
 }

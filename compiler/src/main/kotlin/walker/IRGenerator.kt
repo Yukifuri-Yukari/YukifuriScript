@@ -5,6 +5,7 @@ import yukifuri.script.compiler.ast.expr.VariableAssign
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
+import yukifuri.script.compiler.ast.function.Return
 import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
@@ -16,14 +17,12 @@ class IRGenerator(
     var locals = 0
     val builder = StringBuilder()
     val code = mutableListOf<String>()
-    val global = mutableListOf<String>()
-    var inGlobal = true
 
     fun exec() {
         file.module.forEach {
             it.accept(this)
             if (builder.isNotEmpty()) {
-                global.add(builder.toString())
+                code.add(builder.toString())
                 builder.clear()
             }
         }
@@ -47,6 +46,11 @@ class IRGenerator(
                 builder.append(", ")
         }
         builder.append(")")
+    }
+
+    override fun functionReturn(ret: Return) {
+        builder.append("return ")
+        ret.expr.accept(this)
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {

@@ -11,18 +11,7 @@ class VariableAssign(
     val value: Expression,
 ) : Statement() {
     override fun accept(visitor: Visitor) {
-        if (visitor.context()[name] == null) {
-            throw Exception("No such variable: $name")
-        }
-        if (!visitor.context()[name]!!.second) {
-            throw Exception("Cannot assign to constant: $name")
-        }
-        value.accept(visitor)
-        val expr = visitor.getReturn()
-        when (operator) {
-            Operator.Assign -> visitor.context()[name] = expr to true
-            else -> TODO()
-        }
+        visitor.assignVariable(this)
     }
 
     override fun toString(): String {

@@ -15,31 +15,6 @@ class BinaryExpr(
     }
 
     override fun accept(visitor: Visitor) {
-        l.accept(visitor)
-        val left = visitor.getReturn()
-        r.accept(visitor)
-        val right = visitor.getReturn()
-        // Todo: Operation for other types
-        visitor.setReturn(when (operator) {
-            Operator.Add -> {
-                if (left is String || right is String)
-                    left.toString() + right.toString()
-                else
-                    (left as Number).toDouble() + (right as Number).toDouble()
-            }
-            Operator.Sub, Operator.Mul, Operator.Div -> {
-                left as Number
-                right as Number
-                val left = left.toDouble()
-                val right = right.toDouble()
-                when (operator) {
-                    Operator.Sub -> left - right
-                    Operator.Mul -> left * right
-                    Operator.Div -> left / right
-                    else -> throw IllegalStateException()
-                }
-            }
-            else -> TODO()
-        })
+        visitor.binaryExpr(this)
     }
 }

@@ -11,11 +11,7 @@ class VariableDecl(
     val mutable: Boolean,
 ) : Statement() {
     override fun accept(visitor: Visitor) {
-        value.accept(visitor)
-        if (visitor.context()[name] != null) {
-            throw Exception("Redeclaration of variable $name")
-        }
-        visitor.context()[name] = visitor.getReturn() to mutable
+        visitor.declareVariable(this)
     }
 
     override fun toString(): String {

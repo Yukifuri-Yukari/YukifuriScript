@@ -5,7 +5,7 @@ import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
-import yukifuri.script.compiler.walker.Walker
+import yukifuri.script.compiler.walker.IRGenerator
 import yukifuri.utils.colorama.Fore
 import java.io.File
 
@@ -64,5 +64,10 @@ fun tryParser(ts: TokenStream) {
     printProgress("Parser Result")
     log(parser.file())
 
-    Walker(parser.file()).exec()
+    IRGenerator(parser.file()).use {
+        it.exec()
+        it.code.forEach { it1 ->
+            println(it1)
+        }
+    }
 }

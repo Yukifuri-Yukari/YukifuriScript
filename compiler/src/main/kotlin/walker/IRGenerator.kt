@@ -7,40 +7,77 @@ import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
+import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
-import java.util.Stack
 
-class IRGenerator : Visitor {
-    val stack = Stack<Any>()
+class IRGenerator(
+    val file: YFile
+) : Visitor {
+    var locals = 0
+    val builder = StringBuilder()
     val code = mutableListOf<String>()
+    val global = mutableListOf<String>()
+    var inGlobal = true
+
+    fun exec() {
+        file.module.forEach {
+            it.accept(this)
+            if (builder.isNotEmpty()) {
+                global.add(builder.toString())
+                builder.clear()
+            }
+        }
+    }
 
     override fun functionDecl(decl: YFunction) {
-        TODO("Not yet implemented")
+        code.add("func ${decl.name}(${decl.args.joinToString(", ") { "${it.first}: ${it.second}" }}) {")
+        for (stmt in decl.body) {
+            stmt.accept(this)
+            code.add("    $builder")
+            builder.clear()
+        }
+        code.add("}")
     }
 
     override fun functionCall(call: FunctionCall) {
-        TODO("Not yet implemented")
+        builder.append("${call.name}(")
+        for ((i, expr) in call.args.withIndex()) {
+            expr.accept(this)
+            if (i < call.args.lastIndex)
+                builder.append(", ")
+        }
+        builder.append(")")
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {
-        stack.push(literal.get())
+        builder.append(
+            if (literal.get()::class.java == String::class.java)
+                "\"${literal.get()}\""
+            else literal.get()
+        )
     }
 
     override fun binaryExpr(expr: BinaryExpr) {
-        val r = stack.pop()
-        val l = stack.pop()
-
+        expr.l.accept(this)
+        builder.append(" ${expr.operator} ")
+        expr.r.accept(this)
     }
 
     override fun getVariable(get: VariableGet) {
-        TODO("Not yet implemented")
+        builder.append(get.name)
     }
 
     override fun declareVariable(decl: VariableDecl) {
-        TODO("Not yet implemented")
+        builder.append("variable ${
+            if (decl.mutable) "mutable" else "const"
+        } ${decl.name}: ${decl.type} = ")
+        decl.value.accept(this)
     }
 
     override fun assignVariable(assign: VariableAssign) {
-        TODO("Not yet implemented")
+    }
+
+    fun use(func: (IRGenerator) -> Unit) {
+        func(this)
     }
 }

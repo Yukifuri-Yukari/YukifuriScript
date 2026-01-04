@@ -41,4 +41,8 @@ open class Module(
     operator fun iterator(): Iterator<Statement> {
         return statements.iterator()
     }
+
+    inline fun forEach(func: (Statement) -> Unit) {
+        statements.forEach(func)
+    }
 }

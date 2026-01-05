@@ -14,6 +14,8 @@ open class YFunction(
 
     fun data() = Data(name, args, returnType)
 
+    fun signature() = Signature(name, args.map { it.second }, returnType)
+
     override fun accept(visitor: Visitor) {
         visitor.functionDecl(this)
     }
@@ -25,6 +27,16 @@ open class YFunction(
     ) {
         override fun toString(): String {
             return "Function(name=$name, args=$args, returnType=$returnType)"
+        }
+    }
+
+    data class Signature(
+        val name: String,
+        val argType: List<String>,
+        val returnType: String
+    ) {
+        override fun toString(): String {
+            return "$name(${argType.joinToString(";")});$returnType"
         }
     }
 }

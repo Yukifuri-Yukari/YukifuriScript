@@ -29,7 +29,7 @@ class IRGenerator(
     }
 
     override fun functionDecl(decl: YFunction) {
-        code.add("func ${decl.name}(${decl.args.joinToString(", ") { "${it.first}: ${it.second}" }}) {")
+        code.add("fun ${decl.name}(${decl.args.joinToString(", ") { "${it.first}: ${it.second}" }}): ${decl.returnType} {")
         for (stmt in decl.body) {
             stmt.accept(this)
             code.add("    $builder")
@@ -72,13 +72,17 @@ class IRGenerator(
     }
 
     override fun declareVariable(decl: VariableDecl) {
-        builder.append("variable ${
-            if (decl.mutable) "mutable" else "const"
+        builder.append("va${
+            if (decl.mutable) "r" else "l"
         } ${decl.name}: ${decl.type} = ")
         decl.value.accept(this)
     }
 
     override fun assignVariable(assign: VariableAssign) {
+        code.add("${assign.name} ${assign.operator.op} ")
+        assign.value.accept(this)
+        code[code.size - 1] += builder.toString()
+        builder.clear()
     }
 
     fun use(func: (IRGenerator) -> Unit) {

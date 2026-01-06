@@ -33,8 +33,9 @@ class Walker(
     )))
 
     val functions = mutableMapOf<String, YFunction>()
-    val builtins = mutableMapOf(
+    val builtins = mapOf(
         builtin("println", listOf("obj" to "String"), "Nothing") {
+            println(context["obj"])
         }
     )
 
@@ -49,10 +50,7 @@ class Walker(
     }
 
     override fun functionCall(call: FunctionCall) {
-        if (call.name !in functions.keys) {
-            throw Exception("Undefined symbol: ${call.name}")
-        }
-        val func = functions[call.name]!!
+        val func = functions[call.name] ?: builtins[call.name] ?: throw Exception("Undefined symbol: ${call.name}")
         if (call.args.size != func.args.size) {
             throw Exception("Function requires: ${call.args.size} args, actually: ${call.args.size}")
         }
@@ -109,6 +107,7 @@ class Walker(
     }
 
     fun exec() {
-        file.table.function("main")!!.accept(this)
+        file.module.accept(this)
+        file.table.function("main")!!.body.accept(this)
     }
 }

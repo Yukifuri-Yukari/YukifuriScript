@@ -1,6 +1,7 @@
 package yukifuri.script.compiler.walker
 
 import yukifuri.script.compiler.ast.base.Module
+import yukifuri.script.compiler.ast.base.Operator
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.expr.BinaryExpr
 import yukifuri.script.compiler.ast.expr.VariableAssign
@@ -10,9 +11,12 @@ import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.Return
 import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
+import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 
-class Walker : Visitor {
+class Walker(
+    val file: YFile
+) : Visitor {
     fun builtin(
         name: String,
         args: List<Pair<String, String>>,
@@ -35,7 +39,7 @@ class Walker : Visitor {
     )
 
     var result: Any = Unit
-    var context = mutableMapOf<String, Any>()
+    var context = mutableMapOf<String, Pair<Any, Pair<String, Boolean>>>()
 
 
     override fun functionDecl(decl: YFunction) {
@@ -52,10 +56,10 @@ class Walker : Visitor {
         if (call.args.size != func.args.size) {
             throw Exception("Function requires: ${call.args.size} args, actually: ${call.args.size}")
         }
-        val scope = mutableMapOf<String, Any>()
+        val scope = mutableMapOf<String, Pair<Any, Pair<String, Boolean>>>()
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
-            scope[func.args[i].first] = result
+            scope[func.args[i].first] = result to ("Any" to false)
         }
         val original = context
         context = (scope + context).toMutableMap()
@@ -64,26 +68,47 @@ class Walker : Visitor {
     }
 
     override fun functionReturn(ret: Return) {
-        TODO("Not yet implemented")
+        ret.expr.accept(this)
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {
-        TODO("Not yet implemented")
+        result = literal.get()!!
     }
 
     override fun binaryExpr(expr: BinaryExpr) {
-        TODO("Not yet implemented")
+        expr.l.accept(this)
+        val l = result
+        expr.r.accept(this)
+        val r = result
+        result = when (expr.operator) {
+            Operator.Add -> {
+                if (l is String || r is String) {
+                    l.toString() + r.toString()
+                } else
+                    (l as Number).toDouble() + (r as Number).toDouble()
+            }
+            Operator.Mul -> (l as Number).toDouble() * (r as Number).toDouble()
+            else -> TODO()
+        }
     }
 
     override fun getVariable(get: VariableGet) {
-        TODO("Not yet implemented")
+        result = context[get.name]!!
     }
 
     override fun declareVariable(decl: VariableDecl) {
-        TODO("Not yet implemented")
+        decl.value
+        context[decl.name] = result to (decl.type to decl.mutable)
     }
 
     override fun assignVariable(assign: VariableAssign) {
-        TODO("Not yet implemented")
+        val value = context[assign.name] ?: throw Exception("No such variable ${assign.name}")
+        assign.value.accept(this)
+        if (assign.operator == Operator.Assign)
+            context[assign.name] = result to value.second
+    }
+
+    fun exec() {
+        file.table.function("main")!!.accept(this)
     }
 }

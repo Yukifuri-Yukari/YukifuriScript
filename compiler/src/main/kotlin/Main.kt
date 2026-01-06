@@ -6,6 +6,7 @@ import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
 import yukifuri.script.compiler.walker.IRGenerator
+import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File
 
@@ -64,9 +65,5 @@ fun tryParser(ts: TokenStream) {
     printProgress("Parser Result")
     log(parser.file())
 
-    IRGenerator(parser.file()).use {
-        it.exec()
-        printProgress("IR Generator Result")
-        log(it.code.joinToString("\n"))
-    }
+    Walker(parser.file()).exec()
 }

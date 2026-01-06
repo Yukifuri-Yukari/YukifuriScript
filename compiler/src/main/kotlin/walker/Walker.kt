@@ -35,6 +35,7 @@ class Walker : Visitor {
     )
 
     var result: Any = Unit
+    var context = mutableMapOf<String, Any>()
 
 
     override fun functionDecl(decl: YFunction) {
@@ -56,6 +57,10 @@ class Walker : Visitor {
             arg.accept(this)
             scope[func.args[i].first] = result
         }
+        val original = context
+        context = (scope + context).toMutableMap()
+        func.accept(this)
+        context = original
     }
 
     override fun functionReturn(ret: Return) {

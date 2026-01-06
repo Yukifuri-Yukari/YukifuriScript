@@ -63,7 +63,7 @@ fun tryParser(ts: TokenStream) {
     val parser = Parser(ts, diagnostics)
     parser.parse()
     printProgress("Parser Result")
-    log(parser.file())
+    log(parser.file().module)
 
     Walker(parser.file()).exec()
 }

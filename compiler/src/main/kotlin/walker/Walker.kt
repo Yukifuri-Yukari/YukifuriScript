@@ -45,7 +45,7 @@ class Walker(
 
     override fun functionDecl(decl: YFunction) {
         if (decl.name in functions.keys)
-            throw Exception("Multiple functions defined for ${decl.signature()}")
+            throw Exception("Multiple functions defined for ${decl.signature()}, ${functions.map { "${it.value.signature()}" }}")
         functions[decl.name] = decl
     }
 

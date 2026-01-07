@@ -35,7 +35,7 @@ class Walker(
     val functions = mutableMapOf<String, YFunction>()
     val builtins = mapOf(
         builtin("println", listOf("obj" to "String"), "Nothing") {
-            println(context["obj"])
+            println(context["obj"]?.first ?: "null")
         }
     )
 
@@ -61,7 +61,7 @@ class Walker(
         }
         val original = context
         context = (scope + context).toMutableMap()
-        func.accept(this)
+        func.body.accept(this)
         context = original
     }
 

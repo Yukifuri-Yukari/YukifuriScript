@@ -13,6 +13,7 @@ import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
+import yukifuri.script.compiler.util.Pair3
 
 class Walker(
     val file: YFile
@@ -40,7 +41,7 @@ class Walker(
     )
 
     var result: Any = Unit
-    var context = mutableMapOf<String, Pair<Any, Pair<String, Boolean>>>()
+    var context = mutableMapOf<String, Pair3<Any, String, Boolean>>()
 
 
     override fun functionDecl(decl: YFunction) {
@@ -54,10 +55,10 @@ class Walker(
         if (call.args.size != func.args.size) {
             throw Exception("Function requires: ${call.args.size} args, actually: ${call.args.size}")
         }
-        val scope = mutableMapOf<String, Pair<Any, Pair<String, Boolean>>>()
+        val scope = mutableMapOf<String, Pair3<Any, String, Boolean>>()
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
-            scope[func.args[i].first] = result to ("Any" to false)
+            scope[func.args[i].first] = Pair3(result, "Any", false)
         }
         val original = context
         context = (scope + context).toMutableMap()
@@ -96,14 +97,14 @@ class Walker(
 
     override fun declareVariable(decl: VariableDecl) {
         decl.value.accept(this)
-        context[decl.name] = result to (decl.type to decl.mutable)
+        context[decl.name] = Pair3(result, decl.type, decl.mutable)
     }
 
     override fun assignVariable(assign: VariableAssign) {
         val value = context[assign.name] ?: throw Exception("No such variable ${assign.name}")
         assign.value.accept(this)
         if (assign.operator == Operator.Assign)
-            context[assign.name] = result to value.second
+            context[assign.name] = Pair3(result, value.second, value.third)
     }
 
     fun exec() {

@@ -20,5 +20,4 @@ function main() {
     println("r=" + r + ", area=" + circleArea(r));
     r = 5;
     println("r=" + r + ", area=" + round(circleArea(r)));
-    circleArea("String here");
 }

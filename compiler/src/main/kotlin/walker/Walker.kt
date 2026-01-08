@@ -91,11 +91,11 @@ class Walker(
     }
 
     override fun getVariable(get: VariableGet) {
-        result = context[get.name]!!
+        result = context[get.name]!!.first
     }
 
     override fun declareVariable(decl: VariableDecl) {
-        decl.value
+        decl.value.accept(this)
         context[decl.name] = result to (decl.type to decl.mutable)
     }
 

@@ -62,7 +62,21 @@ class Walker(
         val scope = mutableMapOf<String, Pair3<Any, String, Boolean>>()
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
-            scope[func.args[i].first] = Pair3(result, "Any", false)
+            val signature = func.args[i]
+            val value = result
+            when (signature.second) {
+                "Any" -> {}
+                "String" if value is String -> {}
+                "float" if value is Double -> {}
+                "int" if value is Int -> {}
+                else -> throw Exception(
+                    "Incapability type between ${
+                        signature.second
+                    } and ${
+                        value.javaClass.simpleName
+                    }")
+            }
+            scope[signature.first] = Pair3(result, signature.second, false)
         }
         val original = context
         context = (scope + context).toMutableMap()

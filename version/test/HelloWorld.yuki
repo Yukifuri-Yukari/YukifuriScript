@@ -19,5 +19,5 @@ function main() {
     r = 4;
     println("r=" + r + ", area=" + circleArea(r));
     r = 5;
-    println("r=" + r + ", area=" + circleArea(r));
+    println("r=" + r + ", area=" + round(circleArea(r)));
 }

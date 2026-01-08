@@ -14,6 +14,7 @@ import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 import yukifuri.script.compiler.util.Pair3
+import kotlin.math.round
 
 class Walker(
     val file: YFile
@@ -37,6 +38,9 @@ class Walker(
     val builtins = mapOf(
         builtin("println", listOf("obj" to "String"), "Nothing") {
             println(context["obj"]?.first ?: "null")
+        },
+        builtin("round", listOf("num" to "Any"), "float") {
+            result = round((context["num"]!!.first as Number).toDouble())
         }
     )
 

@@ -5,7 +5,6 @@ import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
-import yukifuri.script.compiler.walker.IRGenerator
 import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File

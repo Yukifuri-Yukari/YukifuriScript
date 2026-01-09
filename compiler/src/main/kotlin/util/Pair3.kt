@@ -9,6 +9,11 @@ data class Pair3<A, B, C>(
         return "($first, $second, $third)"
     }
 
-    constructor(p: Pair<A, Pair<B, C>>) : this(p.first, p.second.first, p.second.second)
+    operator fun get(i: Int): Any? = when (i) {
+        0 -> first
+        1 -> second
+        2 -> third
+        else -> throw Exception("index $i out of range")
+    }
 }
 

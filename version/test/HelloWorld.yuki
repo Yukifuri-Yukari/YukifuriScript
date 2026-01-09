@@ -19,5 +19,8 @@ function main() {
     r = 4;
     println("r=" + r + ", area=" + circleArea(r));
     r = 5;
-    println("r=" + r + ", area=" + round(circleArea(r)));
+    println("r=" + r + ", area=" + circleArea(r));
+    if (3 < 4) {
+        println("3 is less than 4");
+    }
 }

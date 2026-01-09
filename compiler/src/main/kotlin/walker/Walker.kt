@@ -7,6 +7,7 @@ import yukifuri.script.compiler.ast.expr.BinaryExpr
 import yukifuri.script.compiler.ast.expr.VariableAssign
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
+import yukifuri.script.compiler.ast.flow.ConditionalFor
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.Return
 import yukifuri.script.compiler.ast.function.YFunction
@@ -36,7 +37,7 @@ class Walker(
 
     val functions = mutableMapOf<String, YFunction>()
     val builtins = mapOf(
-        builtin("println", listOf("obj" to "String"), "Nothing") {
+        builtin("println", listOf("obj" to "Any"), "Nothing") {
             println(context["obj"]?.first ?: "null")
         },
         builtin("round", listOf("num" to "Any"), "float") {
@@ -105,6 +106,7 @@ class Walker(
                     (l as Number).toDouble() + (r as Number).toDouble()
             }
             Operator.Mul -> (l as Number).toDouble() * (r as Number).toDouble()
+            Operator.Lt -> (l as Number).toDouble() < (r as Number).toDouble()
             else -> TODO()
         }
     }
@@ -123,6 +125,9 @@ class Walker(
         assign.value.accept(this)
         if (assign.operator == Operator.Assign)
             context[assign.name] = Pair3(result, value.second, value.third)
+    }
+
+    override fun condFor(loop: ConditionalFor) {
     }
 
     fun exec() {

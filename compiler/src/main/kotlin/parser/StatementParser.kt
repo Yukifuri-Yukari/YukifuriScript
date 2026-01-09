@@ -17,11 +17,22 @@ class StatementParser(
             peek().type == TokenType.Identifier -> startWithIdentifier()
             peek().type == TokenType.Keyword && peek().text in setOf("val", "var")
                 -> variableDeclaration()
-            peek() ==  TokenType.Keyword to "return" -> functionReturn()
+            peek() == TokenType.Keyword to "return" -> functionReturn()
+            peek() == TokenType.Keyword to "for" -> forLoop()
+            peek() == TokenType.Keyword to "if" -> condIf()
             else -> {
                 TODO()
             }
         }
+    }
+
+    fun condIf(): Statement {
+        next() // if
+    }
+
+    fun forLoop(): Statement {
+        next() // for
+        TODO()
     }
 
     fun functionReturn(): Statement {

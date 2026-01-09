@@ -8,6 +8,7 @@ import yukifuri.script.compiler.ast.expr.VariableAssign
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.flow.ConditionalFor
+import yukifuri.script.compiler.ast.flow.ConditionalJump
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.function.Return
 import yukifuri.script.compiler.ast.function.YFunction
@@ -128,6 +129,18 @@ class Walker(
     }
 
     override fun condFor(loop: ConditionalFor) {
+    }
+
+    override fun condJump(jump: ConditionalJump) {
+        jump.cond.accept(this)
+        if (result !is Boolean) {
+            throw Exception("Requires boolean, actually: ${result.javaClass.simpleName}")
+        }
+        if (result as Boolean) {
+            jump.ifBlock.accept(this)
+        } else {
+            jump.elseBlock?.accept(this)
+        }
     }
 
     fun exec() {

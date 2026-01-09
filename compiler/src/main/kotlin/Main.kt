@@ -1,5 +1,6 @@
 package yukifuri.script.compiler
 
+import yukifuri.script.compiler.exception.Diagnostic
 import yukifuri.script.compiler.exception.Diagnostics
 import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.token.TokenStream

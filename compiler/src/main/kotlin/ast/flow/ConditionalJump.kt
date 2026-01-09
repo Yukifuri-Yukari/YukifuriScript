@@ -13,4 +13,8 @@ class ConditionalJump(
     override fun accept(visitor: Visitor) {
         visitor.condJump(this)
     }
+
+    override fun toString(): String {
+        return "ConditionalJump(cond=$cond, ifBlock=$ifBlock, elseBlock=$elseBlock)"
+    }
 }

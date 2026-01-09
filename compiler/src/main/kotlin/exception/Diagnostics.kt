@@ -24,7 +24,7 @@ class Diagnostics(
             print("""
                 ${diagnostic.level.name} at $fileName (${diagnostic.row + 1} : ${diagnostic.col + 1}):
                 ${source[diagnostic.row]}
-                ${" ".repeat(diagnostic.col)}^-This And After
+                ${" ".repeat(diagnostic.col)}^^^^^^^^^^
                 ${diagnostic.message}
                 ----------
                 """.trimIndent())

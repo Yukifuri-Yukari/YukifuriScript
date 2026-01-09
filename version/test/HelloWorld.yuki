@@ -20,7 +20,8 @@ function main() {
     println("r=" + r + ", area=" + circleArea(r));
     r = 5;
     println("r=" + r + ", area=" + circleArea(r));
-    if (3 < 4) {
-        println("3 is less than 4");
-    }
+
+    if (2 < 1) println("");
+    else if (3 < 1) println("");
+    else println("huh");
 }

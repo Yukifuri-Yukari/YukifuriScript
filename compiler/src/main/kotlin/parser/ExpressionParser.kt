@@ -1,8 +1,10 @@
 package yukifuri.script.compiler.parser
 
 import yukifuri.script.compiler.ast.base.Expression
+import yukifuri.script.compiler.ast.base.Operator
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.expr.BinaryExpr
+import yukifuri.script.compiler.ast.expr.UnaryExpr
 import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
 import yukifuri.script.compiler.ast.literal.FloatLiteral
@@ -21,13 +23,21 @@ class ExpressionParser(
         return when {
             peek().type in setOf(
                 TokenType.LParen, TokenType.Identifier, TokenType.Integer,
-                TokenType.StringLiteral, TokenType.Decimal
+                TokenType.StringLiteral, TokenType.Decimal, TokenType.Operator
             ) -> primaryOrBinary()
-            else -> TODO()
+            else -> {
+                println(peek())
+                TODO()
+            }
         }
     }
 
     fun primaryOrBinary(): Expression {
+        if (peek().type == TokenType.Operator && peek().text in Operator.unary) {
+            val op = next().text
+            val expr = parse()
+            return UnaryExpr(Const.OpMapping[op]!!, expr)
+        }
         if (peek().type == TokenType.LParen) {
             next()
             return primaryOrBinary().also { next() /* ) */ }
@@ -38,7 +48,7 @@ class ExpressionParser(
         if (peekType == TokenType.Operator) {
             return binary()
         }
-        return primary()!!
+        return primary() ?: throw Exception("Unexpected token ${peek()}")
     }
 
     fun primary(): Expression? {
@@ -52,7 +62,7 @@ class ExpressionParser(
                 } else VariableGet(name)
             }
             TokenType.Integer -> IntegerLiteral(toInt(next().text))
-            TokenType.Decimal -> FloatLiteral(next().text.toFloat())
+            TokenType.Decimal -> FloatLiteral(next().text.toDouble())
             TokenType.StringLiteral -> StringLiteral(next().text)
             else -> null
         }

@@ -4,6 +4,7 @@ import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Operator
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.expr.BinaryExpr
+import yukifuri.script.compiler.ast.expr.UnaryExpr
 import yukifuri.script.compiler.ast.expr.VariableAssign
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
@@ -16,6 +17,13 @@ import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 import yukifuri.script.compiler.util.Pair3
+import yukifuri.script.compiler.util.Serializer
+import yukifuri.script.compiler.walker.obj.BooleanObject
+import yukifuri.script.compiler.walker.obj.FloatNumber
+import yukifuri.script.compiler.walker.obj.Integer
+import yukifuri.script.compiler.walker.obj.NumberObject
+import yukifuri.script.compiler.walker.obj.Object
+import yukifuri.script.compiler.walker.obj.StringObject
 import kotlin.math.round
 
 class Walker(
@@ -39,15 +47,49 @@ class Walker(
     val functions = mutableMapOf<String, YFunction>()
     val builtins = mapOf(
         builtin("println", listOf("obj" to "Any"), "Nothing") {
-            println(context["obj"]?.first ?: "null")
+            println(Serializer.deserialize(context["obj"]?.first?.toString() ?: "null"))
         },
-        builtin("round", listOf("num" to "Any"), "float") {
-            result = round((context["num"]!!.first as Number).toDouble())
+        builtin("print", listOf("obj" to "Any"), "Nothing") {
+            print(Serializer.deserialize(context["obj"]?.first?.toString() ?: "null"))
+        },
+        builtin("sleep", listOf("ms" to "int"), "Nothing") {
+            Thread.sleep((context["ms"]!!.first as NumberObject).toLong())
+        },
+        builtin("round", listOf("num" to "Number"), "float") {
+            result = FloatNumber(
+                round(
+                    (context["num"]!!.first as NumberObject).toDouble()
+                )
+            )
         }
     )
 
-    var result: Any = Unit
-    var context = mutableMapOf<String, Pair3<Any, String, Boolean>>()
+    var result: Object = Object.Null
+    var context = mutableMapOf<String, Pair3<Object, String, Boolean>>()
+
+    val type2Raw = mapOf(
+        "int" to Integer::class.java,
+        "float" to FloatNumber::class.java,
+        "String" to StringObject::class.java,
+        "Boolean" to BooleanObject::class.java,
+        "Any" to Object::class.java
+    )
+
+    val raw2Type = type2Raw.entries.associate { it.value to it.key }
+
+    fun typeCheck(value: Object, excepted: String) {
+        for (type in type2Raw.keys) {
+            if (type2Raw[type]!! == value::class.java) {
+                return
+            }
+        }
+
+        throw Exception(
+            "Incapability type between $excepted and ${
+                raw2Type[value::class.java] ?: "NO_TYPE_FOUND"
+            }"
+        )
+    }
 
 
     override fun functionDecl(decl: YFunction) {
@@ -61,23 +103,12 @@ class Walker(
         if (call.args.size != func.args.size) {
             throw Exception("Function requires: ${call.args.size} args, actually: ${call.args.size}")
         }
-        val scope = mutableMapOf<String, Pair3<Any, String, Boolean>>()
+        val scope = mutableMapOf<String, Pair3<Object, String, Boolean>>()
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
             val signature = func.args[i]
             val value = result
-            when (signature.second) {
-                "Any" -> {}
-                "String" if value is String -> {}
-                "float" if value is Double -> {}
-                "int" if value is Int -> {}
-                else -> throw Exception(
-                    "Incapability type between ${
-                        signature.second
-                    } and ${
-                        value.javaClass.simpleName
-                    }")
-            }
+            typeCheck(value, signature.second)
             scope[signature.first] = Pair3(result, signature.second, false)
         }
         val original = context
@@ -91,7 +122,7 @@ class Walker(
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {
-        result = literal.get()!!
+        result = literal.toObject()
     }
 
     override fun binaryExpr(expr: BinaryExpr) {
@@ -99,15 +130,27 @@ class Walker(
         val l = result
         expr.r.accept(this)
         val r = result
-        result = when (expr.operator) {
-            Operator.Add -> {
-                if (l is String || r is String) {
-                    l.toString() + r.toString()
-                } else
-                    (l as Number).toDouble() + (r as Number).toDouble()
+        if (l is StringObject || r is StringObject) {
+            result = when (expr.operator) {
+                Operator.Add -> StringObject(l.toString() + r.toString())
+                else -> throw Exception("Incapability operator for ${expr.operator}")
             }
-            Operator.Mul -> (l as Number).toDouble() * (r as Number).toDouble()
-            Operator.Lt -> (l as Number).toDouble() < (r as Number).toDouble()
+            return
+        }
+        l as NumberObject; r as NumberObject
+        result = when (expr.operator) {
+            Operator.Add -> l.add(r)
+            Operator.Sub -> l.sub(r)
+            Operator.Mul -> l.mul(r)
+            Operator.Lt -> l.compareLt(r)
+            else -> TODO()
+        }
+    }
+
+    override fun unaryExpr(expr: UnaryExpr) {
+        expr.expr.accept(this)
+        result = when (expr.operator) {
+            Operator.Sub -> Integer(0).sub(result as NumberObject)
             else -> TODO()
         }
     }
@@ -118,7 +161,9 @@ class Walker(
 
     override fun declareVariable(decl: VariableDecl) {
         decl.value.accept(this)
-        context[decl.name] = Pair3(result, decl.type, decl.mutable)
+        context[decl.name] = Pair3(result,
+            if (decl.type == "auto") raw2Type[result::class.java]!!
+            else decl.type, decl.mutable)
     }
 
     override fun assignVariable(assign: VariableAssign) {
@@ -129,14 +174,25 @@ class Walker(
     }
 
     override fun condFor(loop: ConditionalFor) {
+        loop.init.accept(this)
+        var cond: Boolean
+        while (true) {
+            loop.cond.accept(this)
+            if (result !is BooleanObject)
+                throw Exception("Requires boolean, actually: ${result.javaClass.simpleName}")
+            cond = (result as BooleanObject).value
+            if (!cond) break
+            loop.body.accept(this)
+            loop.updater.accept(this)
+        }
     }
 
     override fun condJump(jump: ConditionalJump) {
         jump.cond.accept(this)
-        if (result !is Boolean) {
+        if (result !is BooleanObject) {
             throw Exception("Requires boolean, actually: ${result.javaClass.simpleName}")
         }
-        if (result as Boolean) {
+        if ((result as BooleanObject).value) {
             jump.ifBlock.accept(this)
         } else {
             jump.elseBlock?.accept(this)

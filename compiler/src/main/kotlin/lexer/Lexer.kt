@@ -105,16 +105,12 @@ class Lexer(
         while (!eof()) {
             if (isMultiline && peek(3) == "\"\"\"") next(3).also { break }
             if (current() == '\\') {
-                next()
-                if (eof()) addDiagnostic(
-                    "Invalid escape sequence cause of incompleted string."
-                ).also { throwCE("Compile Error") }
-                if (current() == '\"') {
+                if (peek(2)[1] == '\"') {
                     builder.append("\\\"")
-                    next()
+                    next(2)
                 }
             }
-            if (current() == '\"') next().also { break }
+            if (current() == '"') next().also { break }
             builder.append(next())
         }
         emit(TokenType.StringLiteral, builder.toString())

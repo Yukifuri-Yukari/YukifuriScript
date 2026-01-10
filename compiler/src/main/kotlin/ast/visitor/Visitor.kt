@@ -1,6 +1,7 @@
 package yukifuri.script.compiler.ast.visitor
 
 import yukifuri.script.compiler.ast.expr.BinaryExpr
+import yukifuri.script.compiler.ast.expr.UnaryExpr
 import yukifuri.script.compiler.ast.expr.VariableAssign
 import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.expr.VariableGet
@@ -18,6 +19,7 @@ interface Visitor {
 
     fun literal(literal: Literal<*>, type: Class<*>)
     fun binaryExpr(expr: BinaryExpr)
+    fun unaryExpr(expr: UnaryExpr)
 
     fun getVariable(get: VariableGet)
     fun declareVariable(decl: VariableDecl)

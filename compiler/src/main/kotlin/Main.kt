@@ -1,5 +1,6 @@
 package yukifuri.script.compiler
 
+import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.exception.Diagnostics
 import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.token.TokenStream
@@ -9,7 +10,7 @@ import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File
 
-val log = true
+const val LOG = false
 
 val file = File("test/HelloWorld.yuki")
 val text = file
@@ -33,17 +34,18 @@ fun main() {
 
 fun test() {
     val ts = tryLexer()
-    tryParser(ts)
+    val parser = tryParser(ts)
+    tryWalker(parser.file())
 }
 
 fun printProgress(text: String, indent: Int = 8) {
-    if (!log) return
+    if (!LOG) return
     val s = "=".repeat(indent)
     log("${Fore.LIGHT_CYAN_EX}$s $text $s${Fore.RESET}")
 }
 
 fun log(obj: Any?) {
-    if (!log) return
+    if (!LOG) return
     println(obj)
 }
 
@@ -58,11 +60,16 @@ fun tryLexer(): TokenStream {
     return lexer.stream
 }
 
-fun tryParser(ts: TokenStream) {
+fun tryParser(ts: TokenStream): Parser {
     val parser = Parser(ts, diagnostics)
     parser.parse()
     printProgress("Parser Result")
     log(parser.file().module)
 
-    Walker(parser.file()).exec()
+    return parser
+}
+
+fun tryWalker(file: YFile) {
+    val walker = Walker(file)
+    walker.exec()
 }

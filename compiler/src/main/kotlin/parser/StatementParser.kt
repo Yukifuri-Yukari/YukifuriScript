@@ -4,6 +4,7 @@ import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.expr.VariableAssign
 import yukifuri.script.compiler.ast.expr.VariableDecl
+import yukifuri.script.compiler.ast.flow.ConditionalFor
 import yukifuri.script.compiler.ast.flow.ConditionalJump
 import yukifuri.script.compiler.ast.function.Return
 import yukifuri.script.compiler.lexer.token.TokenType
@@ -22,6 +23,7 @@ class StatementParser(
             peek() == TokenType.Keyword to "for" -> forLoop()
             peek() == TokenType.Keyword to "if" -> condIf()
             else -> {
+                println(peek())
                 TODO()
             }
         }
@@ -55,7 +57,19 @@ class StatementParser(
 
     fun forLoop(): Statement {
         next() // for
-        TODO()
+        if (next().type != TokenType.LParen) {
+            addAndError("Expected (, actually ${peek().text}")
+        }
+        val start = parse()
+        val cond = expr.parse()
+        next() // ;
+        val step = parse()
+        val module = if (peek().type == TokenType.LBrace) {
+            self.module()
+        } else {
+            Module(listOf(parse()))
+        }
+        return ConditionalFor(start, cond, step, module)
     }
 
     fun functionReturn(): Statement {

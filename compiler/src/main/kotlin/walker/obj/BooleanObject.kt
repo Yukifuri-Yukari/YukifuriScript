@@ -8,47 +8,26 @@ class BooleanObject(
     }
 
     override fun add(other: NumberObject): NumberObject {
-        return when (other) {
-            is BooleanObject -> BooleanObject(value xor other.value)
-            is Integer -> Integer(toInt() + other.value)
-            is FloatNumber -> FloatNumber(toDouble() + other.value)
-            else -> TODO()
-        }
+        throw Exception("Illegal operation")
     }
 
     override fun sub(other: NumberObject): NumberObject {
-        return when (other) {
-            is BooleanObject -> BooleanObject(value xor other.value)
-            is Integer -> Integer(toInt() - other.value)
-            is FloatNumber -> FloatNumber(toDouble() - other.value)
-            else -> TODO()
-        }
+        throw Exception("Illegal operation")
     }
 
     override fun mul(other: NumberObject): NumberObject {
-        return when (other) {
-            is BooleanObject -> BooleanObject(value xor other.value)
-            is Integer -> Integer(toInt() * other.value)
-            is FloatNumber -> FloatNumber(toDouble() * other.value)
-            else -> TODO()
-        }
+        throw Exception("Illegal operation")
     }
 
     override fun div(other: NumberObject): NumberObject {
-        return when (other) {
-            is BooleanObject -> BooleanObject(value xor other.value)
-            is Integer -> Integer(toInt() / other.value)
-            is FloatNumber -> FloatNumber(toDouble() / other.value)
-            else -> TODO()
-        }
+        throw Exception("Illegal operation")
     }
 
     override fun compareLt(r: NumberObject): BooleanObject {
-        return when (r) {
-            is BooleanObject -> BooleanObject(value xor r.value)
-            is Integer -> BooleanObject(toInt() < r.value)
-            is FloatNumber -> BooleanObject(toDouble() < r.value)
-            else -> TODO()
-        }
+        throw Exception("Illegal operation")
+    }
+
+    override fun compareEq(r: NumberObject): BooleanObject {
+        return BooleanObject(value == r.toBoolean())
     }
 }

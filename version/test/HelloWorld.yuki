@@ -5,7 +5,7 @@ function circleArea(r: int): float {
     return area;
 }
 
-function interruptForAndReturn(): int {
+function interruptForAndReturn(): String {
     for (var i = 0; i < 114514; i=i+1) {
         for (var j = 0; j < i; j=j+1) {
             if (i + j == 100) return i + " " + j;

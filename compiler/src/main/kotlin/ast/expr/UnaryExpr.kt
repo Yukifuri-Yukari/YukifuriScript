@@ -11,4 +11,8 @@ class UnaryExpr(
     override fun accept(visitor: Visitor) {
         visitor.unaryExpr(this)
     }
+
+    override fun toString(): String {
+        return "UnaryExpr(operator=$operator, expr=$expr)"
+    }
 }

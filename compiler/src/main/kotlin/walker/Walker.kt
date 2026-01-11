@@ -3,11 +3,7 @@ package yukifuri.script.compiler.walker
 import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Operator
 import yukifuri.script.compiler.ast.base.Statement
-import yukifuri.script.compiler.ast.expr.BinaryExpr
-import yukifuri.script.compiler.ast.expr.UnaryExpr
-import yukifuri.script.compiler.ast.expr.VariableAssign
-import yukifuri.script.compiler.ast.expr.VariableDecl
-import yukifuri.script.compiler.ast.expr.VariableGet
+import yukifuri.script.compiler.ast.expr.*
 import yukifuri.script.compiler.ast.flow.ConditionalFor
 import yukifuri.script.compiler.ast.flow.ConditionalJump
 import yukifuri.script.compiler.ast.function.FunctionCall
@@ -18,14 +14,10 @@ import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 import yukifuri.script.compiler.util.Pair3
 import yukifuri.script.compiler.util.Serializer
-import yukifuri.script.compiler.walker.obj.BooleanObject
-import yukifuri.script.compiler.walker.obj.FloatNumber
-import yukifuri.script.compiler.walker.obj.FunctionReference
-import yukifuri.script.compiler.walker.obj.Integer
-import yukifuri.script.compiler.walker.obj.NumberObject
-import yukifuri.script.compiler.walker.obj.Object
-import yukifuri.script.compiler.walker.obj.StringObject
-import java.util.Stack
+import yukifuri.script.compiler.walker.obj.*
+import java.util.*
+import kotlin.collections.plus
+import kotlin.collections.toMutableMap
 import kotlin.math.round
 
 class Walker(
@@ -37,7 +29,7 @@ class Walker(
         returnType: String = "Nothing",
         body: (Visitor) -> Unit
     ): Pair<String, YFunction> = name to YFunction(
-        name, args, returnType, Module(
+        name, args, returnType, Module.from(
             listOf(
         object : Statement() {
             override fun accept(visitor: Visitor) {
@@ -49,13 +41,10 @@ class Walker(
     val functions = mutableMapOf<String, YFunction>()
     val builtins = mapOf(
         builtin("println", listOf("obj" to "Any"), "Nothing") {
-            println(Serializer.deserialize(context["obj"]?.first?.toString() ?: "null"))
+            println(Serializer.deserialize(context["obj"]?.first?.toString() ?: throw Exception()))
         },
         builtin("print", listOf("obj" to "Any"), "Nothing") {
-            print(Serializer.deserialize(context["obj"]?.first?.toString() ?: "null"))
-        },
-        builtin("sleep", listOf("ms" to "int"), "Nothing") {
-            Thread.sleep((context["ms"]!!.first as NumberObject).toLong())
+            print(Serializer.deserialize(context["obj"]?.first?.toString() ?: throw Exception()))
         },
         builtin("round", listOf("num" to "Number"), "float") {
             results.push(FloatNumber(
@@ -68,6 +57,7 @@ class Walker(
 
     val results = Stack<Object>()
     var context = mutableMapOf<String, Pair3<Object, String, Boolean>>()
+    var interruptLoops = false
 
     val type2Raw = mapOf(
         "int" to Integer::class.java,
@@ -103,7 +93,16 @@ class Walker(
     }
 
     override fun functionCall(call: FunctionCall) {
-        val func = functions[call.name] ?: builtins[call.name] ?: throw Exception("Undefined symbol: ${call.name}")
+        val function = functions[call.name] ?:
+                       builtins[call.name] ?:
+                       context[call.name]?.first as FunctionReference? ?:
+                       throw Exception("Undefined symbol: ${call.name}")
+
+        val func =
+            function as? YFunction ?:
+            if (function is FunctionReference) function.func
+            else throw Exception("Illegal function reference")
+
         if (call.args.size != func.args.size) {
             throw Exception("Function requires: ${call.args.size} args, actually: ${call.args.size}")
         }
@@ -123,6 +122,7 @@ class Walker(
 
     override fun functionReturn(ret: Return) {
         ret.expr.accept(this)
+        interruptLoops = true
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {
@@ -147,6 +147,7 @@ class Walker(
             Operator.Sub -> l.sub(r)
             Operator.Mul -> l.mul(r)
             Operator.Lt -> l.compareLt(r)
+            Operator.Eq -> l.compareEq(r)
             else -> TODO()
         })
     }
@@ -179,6 +180,8 @@ class Walker(
     }
 
     override fun condFor(loop: ConditionalFor) {
+        interruptLoops = false
+        val original = context.toMutableMap()
         loop.init.accept(this)
         var cond: Boolean
         while (true) {
@@ -186,13 +189,15 @@ class Walker(
             if (results.peek() !is BooleanObject)
                 throw Exception("Requires boolean, actually: ${results.peek().javaClass.simpleName}")
             cond = (results.pop() as BooleanObject).value
-            if (!cond) break
+            if (!cond || interruptLoops) break
             loop.body.accept(this)
             loop.updater.accept(this)
         }
+        context = original
     }
 
     override fun condJump(jump: ConditionalJump) {
+        val original = context.toMutableMap()
         jump.cond.accept(this)
         if (results.peek() !is BooleanObject) {
             throw Exception("Requires boolean, actually: ${results.peek().javaClass.simpleName}")
@@ -202,6 +207,7 @@ class Walker(
         } else {
             jump.elseBlock?.accept(this)
         }
+        context = original
     }
 
     fun exec() {

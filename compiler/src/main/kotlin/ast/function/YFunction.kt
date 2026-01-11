@@ -12,22 +12,10 @@ open class YFunction(
 ) : Statement() {
     override fun toString() = "Function(name=$name, args=$args, return=$returnType, body=$body)"
 
-    fun data() = Data(name, args, returnType)
-
     fun signature() = Signature(name, args.map { it.second }, returnType)
 
     override fun accept(visitor: Visitor) {
         visitor.functionDecl(this)
-    }
-
-    data class Data(
-        val name: String,
-        val args: List<Pair<String, String>>,
-        val returnType: String
-    ) {
-        override fun toString(): String {
-            return "Function(name=$name, args=$args, returnType=$returnType)"
-        }
     }
 
     data class Signature(

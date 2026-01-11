@@ -13,4 +13,5 @@ abstract class NumberObject : Object() {
     abstract fun div(other: NumberObject): NumberObject
 
     abstract fun compareLt(r: NumberObject): BooleanObject
+    abstract fun compareEq(r: NumberObject): BooleanObject
 }

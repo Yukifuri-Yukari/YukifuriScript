@@ -34,4 +34,8 @@ class FloatNumber(
     override fun compareLt(r: NumberObject): BooleanObject {
         return BooleanObject(value < r.toDouble())
     }
+
+    override fun compareEq(r: NumberObject): BooleanObject {
+        return BooleanObject(value == r.toDouble())
+    }
 }

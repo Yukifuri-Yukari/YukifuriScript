@@ -219,14 +219,10 @@ class Lexer(
 
             in Const.operators -> {
                 val op = next()
-//                if (!eof() && (op.toString() + current()) in Const.mulOperators) {
-//                    val dop = "$op${next()}"
-//                    emit(TokenType.Operator, dop)
-//                    return
-//                }
                 for (i in Const.mulOperators) {
                     if (i == op + peek(i.length - 1)) {
                         emit(TokenType.Operator, i)
+                        next(i.length - 1)
                         return
                     }
                 }

@@ -26,4 +26,8 @@ class Integer(
     override fun compareLt(r: NumberObject): BooleanObject {
         return BooleanObject(value < r.toInt())
     }
+
+    override fun compareEq(r: NumberObject): BooleanObject {
+        return BooleanObject(value == r.toInt())
+    }
 }

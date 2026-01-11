@@ -41,7 +41,7 @@ class StatementParser(
         val module = if (peek().type == TokenType.LBrace) {
             self.module()
         } else {
-            Module(listOf(parse()))
+            Module.from(listOf(parse()))
         }
 
         if (peek() != TokenType.Keyword to "else")
@@ -50,7 +50,7 @@ class StatementParser(
         val elseModule = if (peek().type == TokenType.LBrace) {
             self.module()
         } else {
-            Module(listOf(parse()))
+            Module.from(listOf(parse()))
         }
         return ConditionalJump(cond, module, elseModule)
     }
@@ -67,7 +67,7 @@ class StatementParser(
         val module = if (peek().type == TokenType.LBrace) {
             self.module()
         } else {
-            Module(listOf(parse()))
+            Module.from(listOf(parse()))
         }
         return ConditionalFor(start, cond, step, module)
     }

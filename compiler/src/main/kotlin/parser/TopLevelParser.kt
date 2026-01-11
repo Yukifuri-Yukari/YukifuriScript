@@ -2,8 +2,11 @@ package yukifuri.script.compiler.parser
 
 import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Statement
+import yukifuri.script.compiler.ast.expr.VariableDecl
+import yukifuri.script.compiler.ast.function.Return
 import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.lexer.token.TokenType
+import yukifuri.script.compiler.util.EnvironmentTable
 
 class TopLevelParser(
     self: Parser

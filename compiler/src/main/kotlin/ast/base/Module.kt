@@ -3,7 +3,7 @@ package yukifuri.script.compiler.ast.base
 import yukifuri.script.compiler.ast.visitor.Visitor
 
 open class Module(
-    val statements: List<Statement>
+    private val statements: MutableList<Statement>
 ) {
     class ModuleBuilder {
         private val statements = mutableListOf<Statement>()
@@ -42,7 +42,11 @@ open class Module(
         return statements.iterator()
     }
 
-    inline fun forEach(func: (Statement) -> Unit) {
-        statements.forEach(func)
+    fun extend(vararg stmt: Statement) {
+        statements.addAll(stmt)
+    }
+
+    companion object {
+        fun from(list: List<Statement>) = Module(list.toMutableList())
     }
 }

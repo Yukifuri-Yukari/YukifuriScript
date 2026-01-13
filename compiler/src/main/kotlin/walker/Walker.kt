@@ -142,7 +142,6 @@ class Walker(
             })
             return
         }
-        l as NumberObject; r as NumberObject
         frame.push(when (expr.operator) {
             Operator.Add -> l.add(r)
             Operator.Sub -> l.sub(r)

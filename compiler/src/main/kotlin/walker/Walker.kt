@@ -17,8 +17,6 @@ import yukifuri.script.compiler.util.Serializer
 import yukifuri.script.compiler.walker.obj.*
 import yukifuri.script.compiler.walker.structure.StackFrame
 import java.util.*
-import kotlin.collections.plus
-import kotlin.collections.toMutableMap
 import kotlin.math.round
 
 class Walker(
@@ -57,8 +55,9 @@ class Walker(
     )
 
     val stack = Stack<StackFrame>()
-    var frame: StackFrame = stack.peek()
-    var interruptLoops = false
+    val globalVars = StackFrame()
+    lateinit var frame: StackFrame
+    var interruptedLoop = false
 
     val type2Raw = mapOf(
         "int" to Integer::class.java,
@@ -115,15 +114,16 @@ class Walker(
             typeCheck(value, signature.second)
             scope[signature.first] = Pair3(value, signature.second, false)
         }
-        val original = frame
-        frame = (scope + frame).toMutableMap()
+        pushFrame(scope)
+        frame = stack.peek()
         func.body.accept(this)
-        frame = original
+        popFrame()
     }
 
     override fun functionReturn(ret: Return) {
         ret.expr.accept(this)
-        interruptLoops = true
+        stack[stack.size - 2].push(frame.pop())
+        interruptedLoop = true
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {
@@ -142,6 +142,7 @@ class Walker(
             })
             return
         }
+        l as NumberObject; r as NumberObject
         frame.push(when (expr.operator) {
             Operator.Add -> l.add(r)
             Operator.Sub -> l.sub(r)
@@ -161,7 +162,11 @@ class Walker(
     }
 
     override fun getVariable(get: VariableGet) {
-        frame.push(frame[get.name]?.first ?: throw Exception("No such variable ${get.name}"))
+        frame.push(
+            frame[get.name]?.first ?:
+            globalVars[get.name]?.first ?:
+            throw Exception("No such variable ${get.name}")
+        )
     }
 
     override fun declareVariable(decl: VariableDecl) {
@@ -173,49 +178,63 @@ class Walker(
     }
 
     override fun assignVariable(assign: VariableAssign) {
-        val value = frame[assign.name] ?: throw Exception("No such variable ${assign.name}")
+        val value = frame[assign.name] ?: globalVars[assign.name] ?: throw Exception("No such variable ${assign.name}")
         assign.value.accept(this)
         if (assign.operator == Operator.Assign)
             frame[assign.name] = Pair3(frame.pop(), value.second, value.third)
     }
 
     override fun condFor(loop: ConditionalFor) {
-        interruptLoops = false
-        val original = frame.toMutableMap()
+        interruptedLoop = false
+        val origin = frame.localVars
+        frame.localVars = frame.localVars.toMutableMap()
         loop.init.accept(this)
         var cond: Boolean
         while (true) {
             loop.cond.accept(this)
-            if (frame.peek() !is BooleanObject)
-                throw Exception("Requires boolean, actually: ${frame.peek().javaClass.simpleName}")
+            if (frame.stack.peek() !is BooleanObject)
+                throw Exception("Requires boolean, actually: ${frame.stack.peek().javaClass.simpleName}")
             cond = (frame.pop() as BooleanObject).value
-            if (!cond || interruptLoops) break
+            if (!cond) break
             loop.body.accept(this)
+            if (interruptedLoop) break
             loop.updater.accept(this)
         }
-        frame = original
+        frame.localVars = (origin + frame.localVars).toMutableMap()
     }
 
     override fun condJump(jump: ConditionalJump) {
-        val original = frame.toMutableMap()
+        val origin = frame.localVars
+        frame.localVars = frame.localVars.toMutableMap()
         jump.cond.accept(this)
-        if (frame.peek() !is BooleanObject) {
-            throw Exception("Requires boolean, actually: ${frame.peek().javaClass.simpleName}")
+        if (frame.stack.peek() !is BooleanObject) {
+            throw Exception("Requires boolean, actually: ${frame.stack.peek().javaClass.simpleName}")
         }
         if ((frame.pop() as BooleanObject).value) {
             jump.ifBlock.accept(this)
         } else {
             jump.elseBlock?.accept(this)
         }
-        frame = original
-    }
-
-    override fun clear() {
-        frame.clear()
+        frame.localVars = (origin + frame.localVars).toMutableMap()
     }
 
     fun exec() {
+        stack.push(globalVars)
+        frame = stack.peek()
         file.module.accept(this)
+        stack.pop()
+        pushFrame()
+        frame = stack.peek()
         file.table.function("main")!!.body.accept(this)
+    }
+
+    fun pushFrame(localVars: Map<String, Pair3<Object, String, Boolean>> = mapOf()) {
+        stack.push(StackFrame(Stack(), localVars.toMutableMap()))
+        frame = stack.peek()
+    }
+
+    fun popFrame() {
+        stack.pop()
+        frame = stack.peek()
     }
 }

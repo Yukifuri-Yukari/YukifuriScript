@@ -28,6 +28,4 @@ interface Visitor {
     fun condFor(loop: ConditionalFor)
 
     fun condJump(jump: ConditionalJump)
-
-    fun clear()
 }

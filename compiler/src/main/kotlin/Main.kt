@@ -22,7 +22,7 @@ fun main() {
     try {
         test()
     } catch (e: Exception) {
-        println(e.message)
+        println(e.message ?: "Err: <no message>")
         e.printStackTrace()
     } finally {
         if (diagnostics.get().isNotEmpty()) {

@@ -10,15 +10,25 @@ import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File
 
-const val LOG = false
+const val LOG = true
 
-val file = File("test/HelloWorld.yuki")
-val text = file
-    .bufferedReader()
-    .readLines()
-val diagnostics = Diagnostics(file.name, text)
+lateinit var file: File
+lateinit var text: List<String>
+lateinit var diagnostics: Diagnostics
 
-fun main() {
+lateinit var args: Array<String>
+
+fun setup() {
+    file = File(args[0])
+    text = file
+        .bufferedReader()
+        .readLines()
+    diagnostics = Diagnostics(file.name, text)
+}
+
+fun main(argsIn: Array<String>) {
+    args = argsIn
+    setup()
     try {
         test()
     } catch (e: Exception) {
@@ -70,6 +80,7 @@ fun tryParser(ts: TokenStream): Parser {
 }
 
 fun tryWalker(file: YFile) {
+    printProgress("Walking AST")
     val walker = Walker(file)
     walker.exec()
 }

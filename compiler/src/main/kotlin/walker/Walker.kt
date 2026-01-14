@@ -57,7 +57,7 @@ class Walker(
     val stack = Stack<StackFrame>()
     val globalVars = StackFrame()
     lateinit var frame: StackFrame
-    var interruptedLoop = false
+    var interrupted = false
 
     val type2Raw = mapOf(
         "int" to Integer::class.java,
@@ -104,8 +104,9 @@ class Walker(
             else throw Exception("Illegal function reference")
 
         if (call.args.size != func.args.size) {
-            throw Exception("Function requires: ${call.args.size} args, actually: ${call.args.size}")
+            throw Exception("Function requires: ${func.args.size} args, actually: ${call.args.size}")
         }
+
         val scope = mutableMapOf<String, Pair3<Object, String, Boolean>>()
         for ((i, arg) in call.args.withIndex()) {
             arg.accept(this)
@@ -114,15 +115,22 @@ class Walker(
             typeCheck(value, signature.second)
             scope[signature.first] = Pair3(value, signature.second, false)
         }
+        interrupted = false
         pushFrame(scope)
-        func.body.accept(this)
+        for (stmt in func.body.iterator()) {
+            stmt.accept(this)
+            if (interrupted) {
+                stack[stack.size - 2].push(frame.pop())
+                break
+            }
+        }
         popFrame()
+        interrupted = false
     }
 
     override fun functionReturn(ret: Return) {
         ret.expr.accept(this)
-        stack[stack.size - 2].push(frame.pop())
-        interruptedLoop = true
+        interrupted = true
     }
 
     override fun literal(literal: Literal<*>, type: Class<*>) {
@@ -148,6 +156,7 @@ class Walker(
             Operator.Mul -> l.mul(r)
             Operator.Lt -> l.compareLt(r)
             Operator.Eq -> l.compareEq(r)
+            Operator.Lte -> l.compareLte(r)
             Operator.LogicalAnd -> {
                 if (l !is BooleanObject || r !is BooleanObject)
                     throw Exception(
@@ -191,9 +200,8 @@ class Walker(
     }
 
     override fun condFor(loop: ConditionalFor) {
-        interruptedLoop = false
-        val origin = frame.localVars
-        frame.localVars = frame.localVars.toMutableMap()
+        interrupted = false
+        store()
         loop.init.accept(this)
         var cond: Boolean
         while (true) {
@@ -203,15 +211,14 @@ class Walker(
             cond = (frame.pop() as BooleanObject).value
             if (!cond) break
             loop.body.accept(this)
-            if (interruptedLoop) break
+            if (interrupted) break
             loop.updater.accept(this)
         }
-        frame.localVars = (origin + frame.localVars).toMutableMap()
+        merge()
     }
 
     override fun condJump(jump: ConditionalJump) {
-        val origin = frame.localVars
-        frame.localVars = frame.localVars.toMutableMap()
+        store()
         jump.cond.accept(this)
         if (frame.stack.peek() !is BooleanObject) {
             throw Exception("Requires boolean, actually: ${frame.stack.peek().javaClass.simpleName}")
@@ -221,7 +228,7 @@ class Walker(
         } else {
             jump.elseBlock?.accept(this)
         }
-        frame.localVars = (origin + frame.localVars).toMutableMap()
+        merge()
     }
 
     fun exec() {
@@ -242,5 +249,20 @@ class Walker(
     fun popFrame() {
         stack.pop()
         frame = stack.peek()
+    }
+
+    var origin = mutableMapOf<String, Pair3<Object, String, Boolean>>()
+
+    fun store() {
+        origin = frame.localVars
+        frame.localVars = frame.localVars.toMutableMap()
+    }
+
+    fun merge() {
+        frame.localVars = origin.mapValues {
+            if (frame.localVars[it.key] != null && origin[it.key] != null)
+                frame.localVars[it.key]!!
+            else origin[it.key]!!
+        }.toMutableMap()
     }
 }

@@ -11,6 +11,8 @@ class TokenStream(
 
     private var ptr = 0
 
+    fun ptr() = ptr
+
     fun next(): Token {
         if (eof()) throwEOF()
         return tokens[ptr++]

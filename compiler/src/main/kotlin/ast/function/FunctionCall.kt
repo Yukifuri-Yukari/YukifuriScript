@@ -6,11 +6,10 @@ import yukifuri.script.compiler.ast.visitor.Visitor
 
 class FunctionCall(
     val name: String,
-    val args: List<Expression>,
-    val receiver: Expression? = null
+    val args: List<Expression>
 ) : Statement() {
     override fun toString(): String {
-        return "FunctionCall(name='$name', args=$args, receiver=$receiver)"
+        return "FunctionCall(name='$name', args=$args"
     }
 
     override fun accept(visitor: Visitor) {

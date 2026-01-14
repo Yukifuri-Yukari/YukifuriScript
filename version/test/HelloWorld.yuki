@@ -13,9 +13,26 @@ function interruptForAndReturn(): String {
     }
 }
 
+function fib(a: int): int {
+    if (a <= 1)
+        return 1;
+    return fib(a - 1) + fib(a - 2);
+}
+
+function fib1(a: int): int {
+     if (a <= 1) return 1;
+     val f1 = fib1(a - 1);
+     val f2 = fib1(a - 2);
+     return f1 + f2;
+}
+
+function returns(a: Any): Any {
+    return a;
+}
+
 function main() {
-    r = 4;
-    println("r=" + r + ", area=" + circleArea(r)); // exception here
+    /*r = 4;
+    println("r=" + r + ", area=" + circleArea(r));
     r = 5;
     println("r=" + r + ", area=" + circleArea(r));
 
@@ -28,5 +45,8 @@ function main() {
     println("negative: " + negative);
 
     val interrupted = interruptForAndReturn();
-    println(interrupted);
+    println(interrupted);*/
+    println(fib(30));
+    println(fib1(30));
+    println(returns(114) + returns("514"));
 }

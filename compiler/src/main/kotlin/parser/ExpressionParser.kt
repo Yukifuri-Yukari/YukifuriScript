@@ -42,13 +42,13 @@ class ExpressionParser(
             next()
             return primaryOrBinary().also { next() /* ) */ }
         }
-        next()
-        val peekType = peek().type
-        self.ts.trace()
-        if (peekType == TokenType.Operator) {
+        val pos = self.ts.ptr()
+        val primary = primary()
+        if (peek().type == TokenType.Operator) {
+            self.ts.trace(self.ts.ptr() - pos)
             return binary()
         }
-        return primary() ?: throw Exception("Unexpected token ${peek()}")
+        return primary ?: throw Exception("Unexpected token ${peek()}")
     }
 
     fun primary(): Expression? {

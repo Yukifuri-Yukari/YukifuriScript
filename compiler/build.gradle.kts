@@ -1,5 +1,7 @@
 plugins {
     kotlin("jvm")
+
+    id("com.gradleup.shadow") version "9.3.1"
 }
 
 group = "yukifuri.script.compiler"
@@ -46,14 +48,14 @@ tasks.jar {
 }
 
 fun getJarName(): String {
-    return "${tasks.jar.get().archiveBaseName.get()}-${tasks.jar.get().archiveVersion.get()}.jar"
+    return "${tasks.jar.get().archiveBaseName.get()}-${tasks.jar.get().archiveVersion.get()}"
 }
 
 project.copy {
-    if (File("${rootDir.path}\\version\\generated\\${getJarName()}").exists()) {
-        File("${rootDir.path}\\version\\generated\\${getJarName()}").delete()
+    if (File("${rootDir.path}\\version\\generated\\${getJarName()}.jar").exists()) {
+        File("${rootDir.path}\\version\\generated\\${getJarName()}.jar").delete()
     }
-    from("${project.projectDir}\\build\\libs\\${getJarName()}")
+    from("${project.projectDir}\\build\\libs\\${getJarName()}.jar")
     into("${rootDir.path}\\version\\generated")
 }
 //////

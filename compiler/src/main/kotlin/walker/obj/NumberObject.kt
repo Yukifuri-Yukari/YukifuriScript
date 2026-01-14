@@ -14,4 +14,5 @@ abstract class NumberObject : Object() {
 
     abstract fun compareLt(r: NumberObject): BooleanObject
     abstract fun compareEq(r: NumberObject): BooleanObject
+    open fun compareLte(r: NumberObject): BooleanObject = BooleanObject(compareLt(r).value || compareEq(r).value)
 }

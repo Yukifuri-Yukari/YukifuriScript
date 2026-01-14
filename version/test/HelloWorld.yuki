@@ -8,7 +8,7 @@ function circleArea(r: int): float {
 function interruptForAndReturn(): String {
     for (var i = 0; i < 114514; i=i+1) {
         for (var j = 0; j < i; j=j+1) {
-            if (i + j == 100) return i + " " + j;
+            if (i == 91 && j == 78) return i + "" + j;
         }
     }
 }
@@ -27,6 +27,6 @@ function main() {
 
     println("negative: " + negative);
 
-    val interruptFor = interruptForAndReturn();
-    println(interruptFor);
+    val interrupted = interruptForAndReturn();
+    println(interrupted);
 }

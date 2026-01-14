@@ -13,9 +13,9 @@ enum class Operator(
     ModAssign(0, "%="),
 
     // Logical
-    Or(1, "||"),
+    Or(1, "|"),
     LogicalOr(1, "||"),
-    And(2, "&&"),
+    And(2, "&"),
     LogicalAnd(2, "&&"),
 
     // Compare Equals

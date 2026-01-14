@@ -115,7 +115,6 @@ class Walker(
             scope[signature.first] = Pair3(value, signature.second, false)
         }
         pushFrame(scope)
-        frame = stack.peek()
         func.body.accept(this)
         popFrame()
     }
@@ -149,6 +148,13 @@ class Walker(
             Operator.Mul -> l.mul(r)
             Operator.Lt -> l.compareLt(r)
             Operator.Eq -> l.compareEq(r)
+            Operator.LogicalAnd -> {
+                if (l !is BooleanObject || r !is BooleanObject)
+                    throw Exception(
+                        "Illegal operator ${expr.operator} for ${l.javaClass}, ${r.javaClass}"
+                    )
+                BooleanObject(l.value && r.value)
+            }
             else -> TODO()
         })
     }

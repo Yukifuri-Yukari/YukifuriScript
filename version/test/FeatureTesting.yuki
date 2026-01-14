@@ -1,0 +1,3 @@
+function main() {
+    println("Here's some tests about the upcoming features!");
+}

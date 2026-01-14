@@ -1,0 +1,11 @@
+// Recursive.yuki
+
+function fib(a: int): int {
+    if (a <= 1)
+        return 1;
+    return fib(a - 1) + fib(a - 2);
+}
+
+function main() {
+    println("Fib(40): " + fib(40));
+}

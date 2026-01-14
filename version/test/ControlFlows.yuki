@@ -1,0 +1,16 @@
+function main() {
+    if (2 < 1) println("");
+    else if (3 < 1) println("");
+    else println("huh");
+
+    val interrupted = interruptForAndReturn();
+    println(interrupted);
+}
+
+function interruptForAndReturn(): String {
+    for (var i = 0; i < 114514; i=i+1) {
+        for (var j = 0; j < i; j=j+1) {
+            if (i == 91 && j == 78) return i + "" + j;
+        }
+    }
+}

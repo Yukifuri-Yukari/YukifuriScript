@@ -1,0 +1,12 @@
+function main() {
+    val a = "Hello";
+    //val not implemented
+    a = "World";
+    //can't compile
+    val c = 100 * (10-100);
+}
+
+function foo() :String {
+    //no error message
+    return "Hello World"
+}

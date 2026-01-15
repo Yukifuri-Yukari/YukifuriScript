@@ -194,6 +194,7 @@ class Walker(
 
     override fun assignVariable(assign: VariableAssign) {
         val value = frame[assign.name] ?: globalVars[assign.name] ?: throw Exception("No such variable ${assign.name}")
+        if (!value.third) throw Exception("\"val\" cannot be reassigned.")
         assign.value.accept(this)
         if (assign.operator == Operator.Assign)
             frame[assign.name] = Pair3(frame.pop(), value.second, value.third)

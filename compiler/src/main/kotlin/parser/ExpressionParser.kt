@@ -24,31 +24,29 @@ class ExpressionParser(
             peek().type in setOf(
                 TokenType.LParen, TokenType.Identifier, TokenType.Integer,
                 TokenType.StringLiteral, TokenType.Decimal, TokenType.Operator
-            ) -> primaryOrBinary()
+            ) -> {
+                if (peek().type == TokenType.Operator && peek().text in Operator.unary) {
+                    val op = next().text
+                    val expr = parse()
+                    return UnaryExpr(Const.OpMapping[op]!!, expr)
+                }
+                if (peek().type == TokenType.LParen) {
+                    next()
+                    return parse().also { next() /* ) */ }
+                }
+                val pos = self.ts.ptr()
+                val primary = primary()
+                if (peek().type == TokenType.Operator) {
+                    self.ts.trace(self.ts.ptr() - pos)
+                    return binary()
+                }
+                primary ?: throw Exception("Unexpected token ${peek()}")
+            }
             else -> {
                 println(peek())
                 TODO()
             }
         }
-    }
-
-    fun primaryOrBinary(): Expression {
-        if (peek().type == TokenType.Operator && peek().text in Operator.unary) {
-            val op = next().text
-            val expr = parse()
-            return UnaryExpr(Const.OpMapping[op]!!, expr)
-        }
-        if (peek().type == TokenType.LParen) {
-            next()
-            return primaryOrBinary().also { next() /* ) */ }
-        }
-        val pos = self.ts.ptr()
-        val primary = primary()
-        if (peek().type == TokenType.Operator) {
-            self.ts.trace(self.ts.ptr() - pos)
-            return binary()
-        }
-        return primary ?: throw Exception("Unexpected token ${peek()}")
     }
 
     fun primary(): Expression? {
@@ -60,6 +58,10 @@ class ExpressionParser(
                     self.ts.trace()
                     functionCall()
                 } else VariableGet(name)
+            }
+            TokenType.LParen -> {
+                next()
+                parse().also { next() /* ) */ }
             }
             TokenType.Integer -> IntegerLiteral(toInt(next().text))
             TokenType.Decimal -> FloatLiteral(next().text.toDouble())
@@ -93,12 +95,9 @@ class ExpressionParser(
             throwCE("Expected primary expression, actually ${peek().text}")
         }
         var l = left!!
-        // 如果下一个 token 不是运算符，直接返回左侧表达式
-        if (peek().type != TokenType.Operator) return l
 
         var r = peek()
         while (r.type == TokenType.Operator) {
-            // 只有在确认为运算符后才去查优先级，避免对非运算符调用 map 导致 NPE
             val rOp = Const.OpMapping[r.text]
             val rPriority = rOp?.priority
             if (rPriority == null) {

@@ -57,6 +57,6 @@ class Parser(
 
     fun parse() {
         builder.add(topLevel.parse())
-        file = YFile(builder.build(), table)
+        file = YFile(builder.build(), table, diagnostics.fileName.substringBeforeLast("."))
     }
 }

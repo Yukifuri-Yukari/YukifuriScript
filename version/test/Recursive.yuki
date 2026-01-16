@@ -7,5 +7,8 @@ function fib(a: int): int {
 }
 
 function main() {
-    println("Fib(30): " + fib(30));
+    println("Calculating fib(1) to fib(30): ");
+    for (var i=1; i<31; i=i+1) {
+        println("fib(" + i + "): " + fib(i));
+    }
 }

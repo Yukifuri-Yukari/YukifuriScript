@@ -113,7 +113,7 @@ class StatementParser(
             return null
         }
         val op = Const.OpMapping[next().text]!!
-        return VariableAssign(op, name, expr.parse()).also { skip() }
+        return VariableAssign(op, name, expr.parse()).also { next() }
     }
 
     fun functionCall(): Statement? {

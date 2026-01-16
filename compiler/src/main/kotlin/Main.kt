@@ -9,35 +9,42 @@ import yukifuri.script.compiler.parser.Parser
 import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File
+import kotlin.emptyArray
 
-const val LOG = true
+const val LOG = false
 
-lateinit var file: File
 lateinit var text: List<String>
 lateinit var diagnostics: Diagnostics
 
-lateinit var args: Array<String>
-
-fun setup() {
-    file = File(args[0])
+fun setup(file: File) {
     text = file
         .bufferedReader()
         .readLines()
     diagnostics = Diagnostics(file.name, text)
 }
 
-fun main(argsIn: Array<String>) {
-    args = argsIn
-    setup()
-    try {
-        test()
-    } catch (e: Exception) {
-        println(e.message ?: "Err: <no message>")
-        e.printStackTrace()
-    } finally {
-        if (diagnostics.get().isNotEmpty()) {
-            printProgress("Diagnostics")
-            diagnostics.print()
+fun main(args: Array<String>) {
+    if (args.isEmpty()) return
+    val files = when {
+        args.size > 1 -> args.map { File(it) }
+        args[0].endsWith("*") -> {
+            val dir = File(args[0].substringBeforeLast("*"))
+            dir.listFiles()!!.toList().also { println(it) }
+        }
+        else -> listOf(File(args[0]))
+    }
+    for (f in files) {
+        setup(f)
+        try {
+            test()
+        } catch (e: Exception) {
+            println(e.message ?: "Err: <no message>")
+            e.printStackTrace()
+        } finally {
+            if (diagnostics.get().isNotEmpty()) {
+                printProgress("Diagnostics")
+                diagnostics.print()
+            }
         }
     }
 }
@@ -81,6 +88,8 @@ fun tryParser(ts: TokenStream): Parser {
 
 fun tryWalker(file: YFile) {
     printProgress("Walking AST")
+    println("File: ${file.name}")
     val walker = Walker(file)
     walker.exec()
+    println()
 }

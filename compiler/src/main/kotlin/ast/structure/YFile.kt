@@ -6,10 +6,11 @@ import yukifuri.script.compiler.util.EnvironmentTable
 
 class YFile(
     val module: Module,
-    val table: EnvironmentTable
+    val table: EnvironmentTable,
+    val name: String,
 ) {
     override fun toString(): String {
-        return "File(module=$module, table=$table)"
+        return "File(module=$module, table=$table, name=$name)"
     }
 
     fun iterator() = module.iterator()

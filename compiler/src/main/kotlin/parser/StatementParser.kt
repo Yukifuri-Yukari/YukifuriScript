@@ -14,6 +14,11 @@ class StatementParser(
     self: Parser
 ) : SubParser(self) {
 
+    private fun skip(type: TokenType = TokenType.Semicolon) {
+        if (next().type != type)
+            addAndError("Expected ${type.name}, actually ${peek().text}")
+    }
+
     fun parse(): Statement {
         return when {
             peek().type == TokenType.Identifier -> startWithIdentifier()
@@ -62,7 +67,7 @@ class StatementParser(
         }
         val start = parse()
         val cond = expr.parse()
-        next() // ;
+        skip()
         val step = parse()
         val module = if (peek().type == TokenType.LBrace) {
             self.module()
@@ -75,7 +80,7 @@ class StatementParser(
     fun functionReturn(): Statement {
         next() // return
         val expr = expr.parse()
-        return Return(expr).also { next() /* ; */ }
+        return Return(expr).also { skip() }
     }
 
     fun variableDeclaration(): Statement {
@@ -90,9 +95,7 @@ class StatementParser(
             addAndError("Expected =, actually ${peek().text}")
         }
         val value = expr.parse()
-        return VariableDecl(name, type, value, mutable).also {
-            next() // ;
-        }
+        return VariableDecl(name, type, value, mutable).also { skip() }
     }
 
     private fun startWithIdentifier(): Statement {
@@ -110,9 +113,7 @@ class StatementParser(
             return null
         }
         val op = Const.OpMapping[next().text]!!
-        return VariableAssign(op, name, expr.parse()).also {
-            next() // ;
-        }
+        return VariableAssign(op, name, expr.parse()).also { skip() }
     }
 
     fun functionCall(): Statement? {
@@ -122,8 +123,6 @@ class StatementParser(
             return null
         }
         self.ts.trace()
-        return expr.functionCall().also {
-            next() // ;
-        }
+        return expr.functionCall().also { skip() }
     }
 }

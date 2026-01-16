@@ -1,9 +1,12 @@
 function main() {
-    // can't compile
-    println((10 - 10) * 100);
+    cannotBeFixed();
 }
 
-function foo() :String {
-    // no error message
-    return "Hello World";//
+function cannotBeFixed() {
+    /*
+    (10 - 10) * 100 (Expression)
+    */
+    println("""There are some problems cannot be fixed temporarily.
+    1. (10 - 10) * 100
+""");
 }

@@ -59,10 +59,6 @@ class ExpressionParser(
                     functionCall()
                 } else VariableGet(name)
             }
-            TokenType.LParen -> {
-                next()
-                parse().also { next() /* ) */ }
-            }
             TokenType.Integer -> IntegerLiteral(toInt(next().text))
             TokenType.Decimal -> FloatLiteral(next().text.toDouble())
             TokenType.StringLiteral -> StringLiteral(next().text)

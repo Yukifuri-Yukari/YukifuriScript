@@ -1,5 +1,8 @@
 package yukifuri.script.compiler.util
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 object Serializer {
     fun serialize(str: String): String {
         val builder = StringBuilder()
@@ -35,5 +38,13 @@ object Serializer {
             }
         }
         return builder.toString()
+    }
+
+    fun time(
+        time: LocalDateTime = LocalDateTime.now(),
+        pattern: String = "yyyy-MM-dd HH:mm:ss"
+    ): String {
+        val formatter = DateTimeFormatter.ofPattern(pattern)
+        return formatter.format(time)
     }
 }

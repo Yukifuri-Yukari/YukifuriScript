@@ -1,12 +1,4 @@
 function main() {
-    cannotBeFixed();
-}
-
-function cannotBeFixed() {
-    /*
-    (10 - 10) * 100 (Expression)
-    */
-    println("""There are some problems cannot be fixed temporarily.
-    1. (10 - 10) * 100
-""");
+    val a = (10 - 10) * 100 - 100 + 10 * 10 + 10;
+    println(a);
 }

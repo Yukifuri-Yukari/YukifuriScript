@@ -6,25 +6,66 @@ import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.token.TokenStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
+import yukifuri.script.compiler.util.Serializer.time
 import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 import java.io.File
+import java.time.LocalDateTime
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import kotlin.emptyArray
+import kotlin.time.Instant
 
 const val LOG = false
 
+var name: String = ""
 lateinit var text: List<String>
 lateinit var diagnostics: Diagnostics
 
-fun setup(file: File) {
-    text = file
-        .bufferedReader()
-        .readLines()
-    diagnostics = Diagnostics(file.name, text)
+fun setup(input: File) {
+    val reader = input.bufferedReader()
+    val lastEdited = input.lastModified()
+    val time = LocalDateTime.ofInstant(
+        java.time.Instant.ofEpochMilli(lastEdited),
+        ZoneId.systemDefault()
+    )
+    text = reader.readLines()
+    reader.close()
+    name = input.name + " ${time(time)}"
+    diagnostics = Diagnostics(name, text)
+}
+
+fun setup(input: String) {
+    text = input.lines()
+    name = "<stdin> ${time()}"
+    diagnostics = Diagnostics(name, text)
 }
 
 fun main(args: Array<String>) {
-    if (args.isEmpty()) return
+    if (args.isEmpty()) {
+        while (true) {
+            print(" >>>")
+            val input = readln()
+            setup(input)
+
+            if (input.isEmpty()) continue
+            if (input == ":exit") return
+            if (input.startsWith(":load ")) {
+                val file = File(input
+                    .substringAfter(":load ")
+                )
+                setup(file)
+            }
+
+            try {
+                test()
+            } catch (e: Exception) {
+                println(e.message ?: "Err: <no message>")
+                e.printStackTrace()
+            }
+        }
+    }
+
     val files = when {
         args.size > 1 -> args.map { File(it) }
         args[0].endsWith("*") -> {
@@ -35,24 +76,24 @@ fun main(args: Array<String>) {
     }
     for (f in files) {
         setup(f)
-        try {
-            test()
-        } catch (e: Exception) {
-            println(e.message ?: "Err: <no message>")
-            e.printStackTrace()
-        } finally {
-            if (diagnostics.get().isNotEmpty()) {
-                printProgress("Diagnostics")
-                diagnostics.print()
-            }
-        }
+        test()
     }
 }
 
 fun test() {
-    val ts = tryLexer()
-    val parser = tryParser(ts)
-    tryWalker(parser.file())
+    try {
+        val ts = tryLexer()
+        val parser = tryParser(ts)
+        tryWalker(parser.file())
+    } catch (e: Exception) {
+        println(e.message ?: "Err: <no message>")
+        e.printStackTrace()
+    } finally {
+        if (diagnostics.get().isNotEmpty()) {
+            printProgress("Diagnostics")
+            diagnostics.print()
+        }
+    }
 }
 
 fun printProgress(text: String, indent: Int = 8) {
@@ -87,7 +128,7 @@ fun tryParser(ts: TokenStream): Parser {
 
 fun tryWalker(file: YFile) {
     printProgress("Walking AST")
-    println("${Fore.LIGHT_CYAN_EX}==== File: ${file.name} ====${Fore.RESET}")
+    println("${Fore.LIGHT_CYAN_EX}==== File: $name ====${Fore.RESET}")
     val walker = Walker(file)
     walker.exec()
     println()

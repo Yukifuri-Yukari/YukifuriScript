@@ -31,8 +31,7 @@ class ExpressionParser(
                     return UnaryExpr(Const.OpMapping[op]!!, expr)
                 }
                 if (peek().type == TokenType.LParen) {
-                    next()
-                    return parse().also { next() /* ) */ }
+                    return binary()
                 }
                 val pos = self.ts.ptr()
                 val primary = primary()
@@ -50,7 +49,6 @@ class ExpressionParser(
     }
 
     fun primary(): Expression? {
-        /* Must not start with LParen ( ( )! */
         return when (peek().type) {
             TokenType.Identifier -> {
                 val name = next().text
@@ -58,6 +56,10 @@ class ExpressionParser(
                     self.ts.trace()
                     functionCall()
                 } else VariableGet(name)
+            }
+            TokenType.LParen -> {
+                next()
+                parse().also { next() }
             }
             TokenType.Integer -> IntegerLiteral(toInt(next().text))
             TokenType.Decimal -> FloatLiteral(next().text.toDouble())

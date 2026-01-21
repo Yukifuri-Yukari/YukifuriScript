@@ -1,4 +1,4 @@
 function main() {
-    val a = (10 - 10) * 100 - 100 + 10 * 10 + 10;
-    println(a);
+    // Here can write some features can't work now.
+    // Will be fixed!
 }

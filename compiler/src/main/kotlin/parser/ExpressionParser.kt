@@ -87,8 +87,7 @@ class ExpressionParser(
     fun binary(priority: Int = -1): Expression {
         val left = primary()
         if (left == null) {
-            addDiagnostic("Expected primary expression, actually ${peek().text}")
-            throwCE("Expected primary expression, actually ${peek().text}")
+            addAndError("Expected primary expression, actually ${peek().text}")
         }
         var l = left!!
 
@@ -97,8 +96,7 @@ class ExpressionParser(
             val rOp = Const.OpMapping[r.text]
             val rPriority = rOp?.priority
             if (rPriority == null) {
-                addDiagnostic("Unknown operator ${r.text}")
-                throwCE("Unknown operator ${r.text}")
+                addAndError("Unknown operator ${r.text}")
             }
             rPriority!!
             if (rPriority <= priority) break

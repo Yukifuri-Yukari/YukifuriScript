@@ -56,7 +56,6 @@ fun test() {
 }
 
 fun printProgress(text: String, indent: Int = 8) {
-    if (!LOG) return
     val s = "=".repeat(indent)
     log("${Fore.LIGHT_CYAN_EX}$s $text $s${Fore.RESET}")
 }
@@ -88,7 +87,7 @@ fun tryParser(ts: TokenStream): Parser {
 
 fun tryWalker(file: YFile) {
     printProgress("Walking AST")
-    println("File: ${file.name}")
+    println("${Fore.LIGHT_CYAN_EX}==== File: ${file.name} ====${Fore.RESET}")
     val walker = Walker(file)
     walker.exec()
     println()

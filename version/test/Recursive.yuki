@@ -1,14 +1,14 @@
 // Recursive.yuki
 
 function fib(a: int): int {
-    if (a <= 2)
+    if (a <= 1)
         return 1;
     return fib(a - 1) + fib(a - 2);
 }
 
 function main() {
-    println("Calculating fib(1) to fib(30): ");
-    for (var i=1; i<31; i=i+1) {
+    println("Calculating fib(0) to fib(29): ");
+    for (var i=0; i<30; i=i+1) {
         println("fib(" + i + "): " + fib(i));
     }
 }

@@ -197,7 +197,7 @@ class Walker(
         if (!value.third) throw Exception("\"val\" cannot be reassigned.")
         assign.value.accept(this)
         if (assign.operator == Operator.Assign)
-            frame[assign.name] = Pair3(frame.pop(), value.second, value.third)
+            frame[assign.name] = Pair3(frame.pop(), value.second, true)
     }
 
     override fun condFor(loop: ConditionalFor) {
@@ -233,13 +233,16 @@ class Walker(
     }
 
     fun exec() {
+        val time = System.nanoTime()
         stack.push(globalVars)
         frame = stack.peek()
         file.module.accept(this)
         stack.pop()
         pushFrame()
         frame = stack.peek()
-        file.table.function("main")!!.body.accept(this)
+        file.table.function("main")?.body?.accept(this)
+        val result = System.nanoTime() - time
+        println("Time: $result ns, ${result / 1000000.0} ms, ${result / 1000000000.0} s.")
     }
 
     fun pushFrame(localVars: Map<String, Pair3<Object, String, Boolean>> = mapOf()) {

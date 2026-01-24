@@ -1,0 +1,5 @@
+import ModuleB;
+
+function main() {
+    println(ModuleB.toString(114514));
+}

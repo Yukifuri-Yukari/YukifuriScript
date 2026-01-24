@@ -25,6 +25,7 @@ class TopLevelParser(
                 val function = functionDeclaration()
                 function
             }
+            peek() == TokenType.Keyword to "import" -> { TODO() }
             peek().type == TokenType.Keyword && peek().text in setOf("val", "var")
                 -> stmt.variableDeclaration()
             else -> {

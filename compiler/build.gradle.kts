@@ -27,7 +27,7 @@ tasks.test {
 }
 
 //////////
-version = "Indev-1.0.0"
+version = "Indev-0.1.1"
 
 tasks.jar {
     archiveBaseName.set("YukifuriScript-Compiler")

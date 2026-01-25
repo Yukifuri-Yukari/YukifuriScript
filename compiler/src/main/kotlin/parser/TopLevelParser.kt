@@ -71,6 +71,9 @@ class TopLevelParser(
             addAndError("Expected {, actually ${peek().text}")
 
         val body = self.module()
+        if (body.list().last() !is Return) {
+            body.extend(Return(null))
+        }
 
         return YFunction(
             name, params, returnType, body

@@ -17,7 +17,7 @@ interface Visitor {
     fun functionCall(call: FunctionCall)
     fun functionReturn(ret: Return)
 
-    fun literal(literal: Literal<*>, type: Class<*>)
+    fun literal(literal: Literal<*>)
     fun binaryExpr(expr: BinaryExpr)
     fun unaryExpr(expr: UnaryExpr)
 

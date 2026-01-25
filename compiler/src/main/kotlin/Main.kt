@@ -7,6 +7,7 @@ import java.io.File
 
 fun main(args: Array<String>) {
     Bytecodes.generate()
+    runCli(args)
 }
 
 fun runCli(args: Array<String>) {

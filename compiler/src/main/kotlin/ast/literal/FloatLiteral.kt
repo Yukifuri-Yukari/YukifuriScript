@@ -10,7 +10,7 @@ class FloatLiteral(value: Double) : Literal<Double>(value) {
     }
 
     override fun accept(visitor: Visitor) {
-        visitor.literal(this, Double::class.java)
+        visitor.literal(this)
     }
 
     override fun toObject(): Object {

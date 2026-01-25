@@ -38,6 +38,7 @@ class Cli {
                     "coloring" -> when (ctx.args.getOrNull(2)) {
                         "true", "false" -> coloring = ctx.args[2].toBoolean()
                             .also { testCtrl.coloring = it }
+
                         else -> color("Usage: attr set coloring <true|false>")
                     }
 
@@ -53,7 +54,23 @@ class Cli {
                 }
             }
         },
-        Command.new("load", "Load and execute the file or the files in directory.", listOf(1)) {
+        Command.new("mode", "Change compilation mode.", listOf(1)) {
+            testCtrl.mode = ctx.args[0]
+        },
+        Command.new("load", "Load and execute the file or the files in directory.", listOf(0, 1)) {
+            if (ctx.args.isEmpty()) {
+                val text = mutableListOf<String>()
+                while (true) {
+                    val input = readln()
+                    if (input == ":end") break
+                    text.add(input)
+                }
+                testCtrl.name = "<stdin>"
+                testCtrl.text = text
+                testCtrl.diagnostics = Diagnostics(testCtrl.name, testCtrl.text)
+                testCtrl.test()
+                return@new
+            }
             val file = File(ctx.args[0])
             if (!file.exists()) {
                 color("File not found: ${file.absolutePath}")
@@ -73,7 +90,43 @@ class Cli {
                 testCtrl.diagnostics.print()
             }
         },
+        Command.new("print", "Print texts", listOf(-1)) {
+            println(ctx.args.joinToString(""))
+        },
+        Command.new("exec", "Execute YSC Script.", listOf(1)) {
+            val file = File(ctx.args[0])
+            if (!file.exists()) {
+                color("File not found: ${file.absolutePath}")
+                return@new
+            }
+            file.readLines().forEach {
+                single(":$it")
+            }
+        },
     )
+
+    private fun single(input: String) {
+        val (cmd, args) = parseArgs(input)
+        debug("cmd=$cmd args=$args")
+        val command = commands[cmd]
+        if (command == null) {
+            color("Unknown command: $cmd", Fore.LIGHT_RED_EX)
+            return
+        }
+
+        if (!command.arguments.map {
+                if (it == -1) true
+                else args.size == it
+            }.contains(true)) {
+            println("Usage: ${command.name} - ${command.desc}")
+            ctx.history.add(input)
+            return
+        }
+
+        ctx.args = args
+        command.run(ctx)
+        ctx.history.add(input)
+    }
 
     fun run() {
         println("Yukifuri Script Cli (On ${Environment.os}, 26/01/24)")
@@ -90,26 +143,7 @@ class Cli {
                 if (input == ":exit") break
                 if (input.isEmpty()) continue
                 if (input.startsWith(":")) {
-                    val (cmd, args) = parseArgs(input)
-                    debug("cmd=$cmd args=$args")
-                    val command = commands[cmd]
-                    if (command == null) {
-                        color("Unknown command: $cmd", Fore.LIGHT_RED_EX)
-                        continue
-                    }
-
-                    if (!command.arguments.map {
-                            if (it == -1) true
-                            else args.size == it
-                        }.contains(true)) {
-                        println("Usage: ${command.name} - ${command.desc}")
-                        ctx.history.add(input)
-                        continue
-                    }
-
-                    ctx.args = args
-                    command.run(ctx)
-                    ctx.history.add(input)
+                    single(input)
                     continue
                 }
                 testCtrl.name = "<stdin>"
@@ -146,12 +180,14 @@ class Cli {
                         }
                         sb.append(cs.next())
                     }
+
                     else -> sb.append(cs.next())
                 } else while (cs.peek() != '"') sb.append(cs.next())
                 cs.next()
                 list.add(sb.toString())
                 sb.clear()
             }
+
             ' ' -> {
                 cs.next()
                 if (sb.isNotEmpty()) {
@@ -159,6 +195,7 @@ class Cli {
                     sb.clear()
                 }
             }
+
             else -> sb.append(cs.next())
         }
         if (sb.isNotEmpty())

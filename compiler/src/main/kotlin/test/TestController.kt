@@ -5,6 +5,7 @@ import yukifuri.script.compiler.lexer.Lexer
 import yukifuri.script.compiler.lexer.util.CharStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
+import yukifuri.script.compiler.visitor.bcgen.BytecodeGenerator
 import yukifuri.script.compiler.walker.Walker
 import yukifuri.utils.colorama.Fore
 
@@ -12,6 +13,8 @@ class TestController {
     companion object {
         const val LOG = false
     }
+
+    var mode = "WALK"
 
     var name: String = ""
     lateinit var text: List<String>
@@ -55,11 +58,20 @@ class TestController {
     }
 
     fun tryWalker() {
-        printProgress("Walking AST")
-        printProgress("File: $name", 4, true)
-        walker = Walker(parser.file())
-        walker.exec()
-        println()
+        if (mode == "WALK") {
+            printProgress("Walking AST")
+            printProgress("File: $name", 4, true)
+            walker = Walker(parser.file())
+            walker.exec()
+            println()
+        } else {
+            printProgress("Bytecode Generation")
+            printProgress("File: $name", 4, true)
+            val bcGen = BytecodeGenerator()
+            bcGen.exec(parser.file())
+            println(bcGen.compiledFile())
+            println(bcGen.toByteArray().toList())
+        }
     }
 
     fun test() {

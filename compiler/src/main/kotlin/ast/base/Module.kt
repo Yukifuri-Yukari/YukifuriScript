@@ -46,6 +46,10 @@ open class Module(
         statements.addAll(stmt)
     }
 
+    fun list(): List<Statement> {
+        return statements
+    }
+
     companion object {
         fun from(list: List<Statement>) = Module(list.toMutableList())
     }

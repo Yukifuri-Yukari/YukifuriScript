@@ -10,7 +10,7 @@ class IntegerLiteral(value: Int) : Literal<Int>(value) {
     }
 
     override fun accept(visitor: Visitor) {
-        visitor.literal(this, Int::class.java)
+        visitor.literal(this)
     }
 
     override fun toObject(): Object {

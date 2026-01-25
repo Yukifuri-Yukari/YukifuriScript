@@ -1,4 +1,3 @@
-// language: kotlin
 package yukifuri.script.compiler.parser
 
 import yukifuri.script.compiler.ast.base.Module

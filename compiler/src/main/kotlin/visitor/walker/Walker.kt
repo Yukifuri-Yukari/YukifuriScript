@@ -129,11 +129,11 @@ class Walker(
     }
 
     override fun functionReturn(ret: Return) {
-        ret.expr.accept(this)
+        ret.expr?.accept(this)
         interrupted = true
     }
 
-    override fun literal(literal: Literal<*>, type: Class<*>) {
+    override fun literal(literal: Literal<*>) {
         frame.push(literal.toObject())
     }
 

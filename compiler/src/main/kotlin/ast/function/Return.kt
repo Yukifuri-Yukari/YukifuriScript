@@ -5,7 +5,7 @@ import yukifuri.script.compiler.ast.base.Statement
 import yukifuri.script.compiler.ast.visitor.Visitor
 
 class Return(
-    val expr: Expression
+    val expr: Expression?
 ) : Statement() {
     override fun accept(visitor: Visitor) {
         visitor.functionReturn(this)

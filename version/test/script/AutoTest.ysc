@@ -1,0 +1,5 @@
+print "Testing"
+mode BCG
+load test/Recursive.yuki
+mode WALK
+print "Finished"

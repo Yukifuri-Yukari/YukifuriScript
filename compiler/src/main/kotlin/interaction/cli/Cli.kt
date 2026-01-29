@@ -15,6 +15,7 @@ class Cli {
 
     val testCtrl = TestController()
     val ctx = CliContext()
+    val aliases = mutableMapOf<String, List<String>>()
     val commands: Map<String, Command> = mapOf(
         Command.new("help", "Print help messages.", listOf(0, 1)) {
             if (ctx.args.isNotEmpty()) {
@@ -30,6 +31,14 @@ class Cli {
             commands.forEach {
                 println("${it.key} - ${it.value.desc}")
             }
+            println("======== Helps ========")
+            println("""
+                My Shell cant display ANSI Escape Sequence coloring?
+                Type "attr set coloring false" to disable coloring.
+                Escape-Sequence-Lexing in strings is weird?
+                Type "attr set esl false" to disable it.
+                """.trimIndent()
+            )
         },
         Command.new("attr", "Edit attributes of cli.", listOf(-1)) {
             when (ctx.args.getOrNull(0)) {
@@ -51,6 +60,7 @@ class Cli {
                         null -> " $ "
                         else -> ctx.args[2]
                     }
+                    else -> color("Usage: attr set <aid> <...>")
                 }
             }
         },
@@ -65,9 +75,7 @@ class Cli {
                     if (input == ":end") break
                     text.add(input)
                 }
-                testCtrl.name = "<stdin>"
-                testCtrl.text = text
-                testCtrl.diagnostics = Diagnostics(testCtrl.name, testCtrl.text)
+                testCtrl.setup(text, "<stdin>")
                 testCtrl.test()
                 return@new
             }
@@ -83,11 +91,8 @@ class Cli {
             }
 
             for (file in files) {
-                testCtrl.name = file.name
-                testCtrl.text = file.readLines()
-                testCtrl.diagnostics = Diagnostics(testCtrl.name, testCtrl.text)
+                testCtrl.setup(file.readLines(), file.name)
                 testCtrl.test()
-                testCtrl.diagnostics.print()
             }
         },
         Command.new("print", "Print texts", listOf(-1)) {
@@ -101,6 +106,28 @@ class Cli {
             }
             file.readLines().forEach {
                 single(":$it")
+            }
+        },
+        Command.new("alias", "Create or execute an alias for command.", listOf(2)) {
+            if (ctx.args[0] == "=") {
+                val alias = ctx.args[1]
+                val cmd = mutableListOf<String>()
+                var input: String
+                while (true) {
+                    input = readln()
+                    if (input.trim() == ":end") break
+                    cmd.add(input)
+                }
+                aliases[alias] = cmd
+            } else if (ctx.args[0] == ".") {
+                if (aliases.containsKey(ctx.args[1])) {
+                    val alias = aliases[ctx.args[1]]!!
+                    alias.forEach {
+                        single(":$it")
+                    }
+                } else {
+                    color("Alias \"${ctx.args[1]}\" not found.")
+                }
             }
         },
     )
@@ -129,11 +156,8 @@ class Cli {
     }
 
     fun run() {
-        println("Yukifuri Script Cli (On ${Environment.os}, 26/01/24)")
-        println("Enter \":help\" or \":help <command>\" for help")
-        println("Type \":exit\" to exit.")
-        println("If the shell cannot display ANSI Coloring, type \":attr set coloring false\"")
-        println("Escape-Sequence-Lexing in strings is enabled by default, attr id: \"esl\".")
+        println("Yukifuri Script Cli (On \\${Environment.os}/, 26/01/24)")
+        println("Enter \":help\" for help, \":exit\" to exit.")
 
         var input: String
         while (true) {
@@ -146,9 +170,7 @@ class Cli {
                     single(input)
                     continue
                 }
-                testCtrl.name = "<stdin>"
-                testCtrl.text = input.lines()
-                testCtrl.diagnostics = Diagnostics(testCtrl.name, testCtrl.text)
+                testCtrl.setup(input.lines(), "stdin")
                 testCtrl.test()
             } catch (exception: Exception) {
                 println("Error: ${exception.javaClass.simpleName}: ${exception.message ?: "<null>"}")

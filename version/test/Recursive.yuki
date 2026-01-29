@@ -1,14 +1,24 @@
 // Recursive.yuki
 
 function fib(a: int): int {
-    if (a <= 1)
-        return 1;
+    if (a == 0) return 0;
+    if (a <= 1) return 1;
     return fib(a - 1) + fib(a - 2);
 }
 
 function main() {
-    println("Calculating fib(0) to fib(29): ");
-    for (var i=0; i<30; i=i+1) {
+    println("Calculating fib(0) to fib(20): ");
+    for (var i = 0; i<31; i=i+1) {
         println("fib(" + i + "): " + fib(i));
     }
+    val a = if (true) { getValue(114514); } else 1919810;
+    println("a = " + a);
+    println((if (true) "HYW" else "HeYiwEI!"));
+    println(if (false) "HYW" else "HeYiwEI!");
+
+    val whatsTheType = 114 * 5.14 + 111;
+}
+
+function getValue(a: int): int {
+    return a;
 }

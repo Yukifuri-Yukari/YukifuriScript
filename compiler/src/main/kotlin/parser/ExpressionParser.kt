@@ -7,10 +7,10 @@ import yukifuri.script.compiler.ast.expr.BinaryExpr
 import yukifuri.script.compiler.ast.expr.UnaryExpr
 import yukifuri.script.compiler.ast.expr.VariableGet
 import yukifuri.script.compiler.ast.function.FunctionCall
+import yukifuri.script.compiler.ast.literal.BooleanLiteral
 import yukifuri.script.compiler.ast.literal.FloatLiteral
 import yukifuri.script.compiler.ast.literal.IntegerLiteral
 import yukifuri.script.compiler.ast.literal.StringLiteral
-import yukifuri.script.compiler.exception.Diagnostic
 import yukifuri.script.compiler.exception.throwCE
 import yukifuri.script.compiler.lexer.token.TokenType
 import yukifuri.script.compiler.util.Const
@@ -23,7 +23,8 @@ class ExpressionParser(
         return when {
             peek().type in setOf(
                 TokenType.LParen, TokenType.Identifier, TokenType.Integer,
-                TokenType.StringLiteral, TokenType.Decimal, TokenType.Operator
+                TokenType.StringLiteral, TokenType.Decimal, TokenType.Operator,
+                TokenType.Boolean,
             ) -> {
                 if (peek().type == TokenType.Operator && peek().text in Operator.unary) {
                     val op = next().text
@@ -41,6 +42,7 @@ class ExpressionParser(
                 }
                 primary ?: throw Exception("Unexpected token ${peek()}")
             }
+            peek() == TokenType.Keyword to "if" -> stmt.condIf(true)
             else -> {
                 println(peek())
                 TODO()
@@ -64,6 +66,7 @@ class ExpressionParser(
             TokenType.Integer -> IntegerLiteral(toInt(next().text))
             TokenType.Decimal -> FloatLiteral(next().text.toDouble())
             TokenType.StringLiteral -> StringLiteral(next().text)
+            TokenType.Boolean -> BooleanLiteral(next().text.toBoolean())
             else -> null
         }
     }

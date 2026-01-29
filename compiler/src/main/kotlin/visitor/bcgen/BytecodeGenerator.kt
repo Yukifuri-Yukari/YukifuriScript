@@ -10,16 +10,22 @@ import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 import yukifuri.script.compiler.visitor.bcgen.vm.CompiledFile
-import javax.lang.model.type.NullType
+import yukifuri.script.compiler.visitor.bcgen.vm.CompiledFile.ConstantEntry.ConstantType
+import kotlin.experimental.and
 
 class BytecodeGenerator : Visitor {
     companion object {
-        val typeTable = mutableMapOf(
-            "int" to 'I'.code.toByte(),
-            "float" to 'F'.code.toByte(),
-            "String" to 'S'.code.toByte(),
-            "Nothing" to 'N'.code.toByte(),
-        )
+        fun String.toByteList(): List<Byte> {
+            val bytes = toByteArray(Charsets.UTF_16BE)
+            return bytes.toList()
+        }
+
+        fun Short.toByteList(): List<Byte> {
+            return listOf(
+                ((this.toInt() ushr 8) and 0xFF).toByte(),  // 无符号右移
+                (this.toInt() and 0xFF).toByte()
+            )
+        }
     }
 
     private lateinit var file: YFile
@@ -35,18 +41,35 @@ class BytecodeGenerator : Visitor {
 
     fun toByteArray() = bcf.toByteArray()
 
-
     fun compiledFile() = bcf
 
-    override fun functionDecl(decl: YFunction) {
-        val signature = mutableListOf<Byte>()
-        for (arg in decl.args) {
-            signature.add(typeTable[arg.second]!!)
+    fun type(type: String): String {
+        return when (type) {
+            "int" -> "I"
+            "float" -> "F"
+            "String" -> "S"
+            "Nothing" -> "N"
+            else -> TODO()
         }
-        signature.add(typeTable[decl.returnType]!!)
-        bcf.newFunction(bcf.constPtr, signature)
-        bcf.newConstant(decl.name.toByteArray(Charsets.UTF_32).toList())
+    }
+
+    override fun functionDecl(decl: YFunction) {
+        val name = bcf.newConstant(decl.name.toByteList())
+        val descriptorName = "(${
+            decl.args.joinToString {
+                "${type(it.second)},"
+            }
+        })${type(decl.returnType)};"
+        val descriptor = bcf.newConstant(
+            descriptorName.toByteList(),
+            ConstantType.Descriptor
+        )
+        val methodRef = bcf.newConstant(
+            name.toByteList() + descriptor.toByteList(),
+            ConstantType.MethodRef
+        )
         decl.body.accept(this)
+        bcf.newFunction(methodRef, bcf.build())
     }
 
     override fun functionCall(call: FunctionCall) {

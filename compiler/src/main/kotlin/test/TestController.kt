@@ -6,7 +6,8 @@ import yukifuri.script.compiler.lexer.util.CharStream
 import yukifuri.script.compiler.lexer.util.CharStreamImpl
 import yukifuri.script.compiler.parser.Parser
 import yukifuri.script.compiler.visitor.bcgen.BytecodeGenerator
-import yukifuri.script.compiler.walker.Walker
+import yukifuri.script.compiler.visitor.bcgen.entry.Entry
+import yukifuri.script.compiler.visitor.walker.Walker
 import yukifuri.utils.colorama.Fore
 
 class TestController {
@@ -40,6 +41,13 @@ class TestController {
         println(obj)
     }
 
+    fun setup(input: List<String>, filename: String) {
+        name = filename
+        text = input
+        diagnostics = Diagnostics(filename, text)
+        cs = CharStreamImpl(input.joinToString("\n"))
+    }
+
     fun tryLexer() {
         cs = CharStreamImpl(text.joinToString("\n"))
         lexer = Lexer(cs, diagnostics)
@@ -64,14 +72,22 @@ class TestController {
             walker = Walker(parser.file())
             walker.exec()
             println()
-        } else {
-            printProgress("Bytecode Generation")
-            printProgress("File: $name", 4, true)
-            val bcGen = BytecodeGenerator()
-            bcGen.exec(parser.file())
-            println(bcGen.compiledFile())
-            println(bcGen.toByteArray().toList())
+        } else if (mode == "BCG") {
+            tryBytecodeGeneration()
         }
+    }
+
+    fun tryBytecodeGeneration() {
+        printProgress("Bytecode Generation")
+        printProgress("File: $name", 4, true)
+        val entry = Entry()
+        entry.exec(parser.file())
+        println("Symbol: ${entry.table.global}")
+        printProgress("SymbolTable", 2)
+        val bcGen = BytecodeGenerator()
+        bcGen.exec(parser.file())
+        println(bcGen.compiledFile())
+        println(bcGen.toByteArray().toList())
     }
 
     fun test() {

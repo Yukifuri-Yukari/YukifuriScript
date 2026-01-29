@@ -1,4 +1,4 @@
-package yukifuri.script.compiler.walker
+package yukifuri.script.compiler.visitor.walker
 
 import yukifuri.script.compiler.ast.base.Module
 import yukifuri.script.compiler.ast.base.Operator
@@ -14,9 +14,16 @@ import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
 import yukifuri.script.compiler.util.Pair3
 import yukifuri.script.compiler.util.Serializer
-import yukifuri.script.compiler.walker.obj.*
-import yukifuri.script.compiler.walker.structure.StackFrame
+import yukifuri.script.compiler.visitor.walker.obj.BooleanObject
+import yukifuri.script.compiler.visitor.walker.obj.FloatNumber
+import yukifuri.script.compiler.visitor.walker.obj.FunctionReference
+import yukifuri.script.compiler.visitor.walker.obj.Integer
+import yukifuri.script.compiler.visitor.walker.obj.NumberObject
+import yukifuri.script.compiler.visitor.walker.obj.Object
+import yukifuri.script.compiler.visitor.walker.obj.StringObject
+import yukifuri.script.compiler.visitor.walker.structure.StackFrame
 import java.util.*
+import kotlin.collections.iterator
 import kotlin.math.round
 
 class Walker(
@@ -46,11 +53,13 @@ class Walker(
             print(Serializer.deserialize(frame["obj"]?.first?.toString() ?: throw Exception()))
         },
         builtin("round", listOf("num" to "Number"), "float") {
-            frame.push(FloatNumber(
-                round(
-                    (frame["num"]!!.first as NumberObject).toDouble()
+            frame.push(
+                FloatNumber(
+                    round(
+                        (frame["num"]!!.first as NumberObject).toDouble()
+                    )
                 )
-            ))
+            )
         }
     )
 

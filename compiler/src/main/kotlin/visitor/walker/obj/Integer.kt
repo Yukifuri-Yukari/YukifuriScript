@@ -1,4 +1,4 @@
-package yukifuri.script.compiler.walker.obj
+package yukifuri.script.compiler.visitor.walker.obj
 
 class Integer(
     val value: Int

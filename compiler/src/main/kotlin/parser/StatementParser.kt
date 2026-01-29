@@ -7,6 +7,9 @@ import yukifuri.script.compiler.ast.expr.VariableDecl
 import yukifuri.script.compiler.ast.flow.ConditionalFor
 import yukifuri.script.compiler.ast.flow.ConditionalJump
 import yukifuri.script.compiler.ast.function.Return
+import yukifuri.script.compiler.ast.literal.FloatLiteral
+import yukifuri.script.compiler.ast.literal.IntegerLiteral
+import yukifuri.script.compiler.ast.literal.StringLiteral
 import yukifuri.script.compiler.lexer.token.TokenType
 import yukifuri.script.compiler.util.Const
 
@@ -27,6 +30,9 @@ class StatementParser(
             peek() == TokenType.Keyword to "return" -> functionReturn()
             peek() == TokenType.Keyword to "for" -> forLoop()
             peek() == TokenType.Keyword to "if" -> condIf()
+            peek().type in setOf(
+                TokenType.StringLiteral, TokenType.Integer, TokenType.Decimal
+            ) -> literal()
             else -> {
                 println(peek())
                 TODO()
@@ -34,7 +40,16 @@ class StatementParser(
         }
     }
 
-    fun condIf(): Statement {
+    fun literal(): Statement {
+        return when (peek().type) {
+            TokenType.StringLiteral -> StringLiteral(peek().text)
+            TokenType.Integer -> IntegerLiteral(peek().text.toInt())
+            TokenType.Decimal -> FloatLiteral(peek().text.toDouble())
+            else -> throw IllegalArgumentException()
+        }.also { next() }
+    }
+
+    fun condIf(mustHave2Branch: Boolean = false): Statement {
         next() // if
         if (next().type != TokenType.LParen) {
             addAndError("Expected (, actually ${peek().text}")
@@ -49,8 +64,12 @@ class StatementParser(
             Module.from(listOf(parse()))
         }
 
-        if (peek() != TokenType.Keyword to "else")
+        if (peek() != TokenType.Keyword to "else") {
+            if (mustHave2Branch) {
+                throw Exception("Expected else, actually ${peek().text}")
+            }
             return ConditionalJump(cond, module)
+        }
         next() // else
         val elseModule = if (peek().type == TokenType.LBrace) {
             self.module()

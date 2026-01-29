@@ -1,11 +1,9 @@
 package yukifuri.script.compiler.ast.literal
 
-import yukifuri.script.compiler.ast.base.Expression
-import yukifuri.script.compiler.ast.visitor.Visitor
-import yukifuri.script.compiler.walker.obj.NumberObject
-import yukifuri.script.compiler.walker.obj.Object
+import yukifuri.script.compiler.ast.base.Statement
+import yukifuri.script.compiler.visitor.walker.obj.Object
 
-abstract class Literal<T>(protected val value: T) : Expression() {
+abstract class Literal<T>(protected val value: T) : Statement() {
     fun get() = value
 
     abstract fun toObject(): Object

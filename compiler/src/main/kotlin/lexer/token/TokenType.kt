@@ -6,6 +6,7 @@ enum class TokenType {
     Integer,
     StringLiteral,
     Decimal,
+    Boolean,
     // Operators are +-*/%<>=!&|, += -= etc, && || == != < > <= >= >> <<.
     Operator,
 

@@ -1,4 +1,4 @@
-package yukifuri.script.compiler.walker.obj
+package yukifuri.script.compiler.visitor.walker.obj
 
 import yukifuri.script.compiler.ast.function.YFunction
 

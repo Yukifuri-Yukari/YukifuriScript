@@ -52,5 +52,7 @@ open class Module(
 
     companion object {
         fun from(list: List<Statement>) = Module(list.toMutableList())
+
+        val empty = Module(mutableListOf())
     }
 }

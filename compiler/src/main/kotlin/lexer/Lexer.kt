@@ -91,8 +91,11 @@ class Lexer(
         }
         val s = builder.toString()
         emit(
-            if (s in Const.keywords) TokenType.Keyword
-            else TokenType.Identifier,
+            when (s) {
+                in Const.keywords -> TokenType.Keyword
+                "true", "false" -> TokenType.Boolean
+                else -> TokenType.Identifier
+            },
             s
         )
     }

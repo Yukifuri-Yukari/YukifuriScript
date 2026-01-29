@@ -1,8 +1,7 @@
-package yukifuri.script.compiler.walker.structure
+package yukifuri.script.compiler.visitor.walker.structure
 
 import yukifuri.script.compiler.util.Pair3
-import yukifuri.script.compiler.walker.obj.NumberObject
-import yukifuri.script.compiler.walker.obj.Object
+import yukifuri.script.compiler.visitor.walker.obj.Object
 import java.util.Stack
 
 class StackFrame(

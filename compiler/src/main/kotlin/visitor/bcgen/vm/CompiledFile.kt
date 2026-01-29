@@ -1,7 +1,8 @@
 package yukifuri.script.compiler.visitor.bcgen.vm
 
-import yukifuri.script.compiler.util.Pair3
-
+import yukifuri.script.compiler.util.toBytes
+import yukifuri.script.compiler.visitor.bcgen.BytecodeGenerator.Companion.toByteList
+import kotlin.experimental.or
 
 class CompiledFile {
     companion object {
@@ -13,56 +14,125 @@ class CompiledFile {
         )
     }
 
-    // Pair.first: Size, Pair.second: Value
-    val constants = mutableListOf<Pair<Byte, List<Byte>>>()
-    // Pair.first: Name (Index of constant pool), Pair.second: Start
-    val functions = mutableListOf<Pair3<Byte, List<Byte>, Int>>()
+    private val constants = mutableListOf<ConstantEntry>()
+    private val constantMap = mutableMapOf<List<Byte>, Short>()
 
-    val instructions = mutableListOf<Byte>()
+    private val functions = mutableListOf<Method>()
+    private val functionMap = mutableMapOf<String, Short>()
 
-    var constPtr: Byte = 0
-    var funcPtr: Byte = 0
-    var instPtr = 0
+    private val instructions = mutableListOf<Byte>()
 
-    fun newConstant(value: List<Byte>): CompiledFile {
-        constants.add(Pair(value.size.toByte(), value))
-        constPtr++
-        return this
+    fun newConstant(
+        value: List<Byte>,
+        type: ConstantEntry.ConstantType = ConstantEntry.ConstantType.String
+    ): Short {
+        val ind = constantMap[value]
+        if (ind != null) return ind
+
+        val size = constants.size.toShort()
+        constants.add(ConstantEntry(type, size, value))
+        constantMap[value] = size
+
+        return size
     }
 
-    fun newFunction(name: Byte, signature: List<Byte>, start: Int = instructions.size): CompiledFile {
-        functions.add(Pair3(name, signature, start))
-        funcPtr++
-        return this
+    fun newFunction(methodRef: Short, body: List<Byte>): Short {
+        val index = functions.size.toShort()
+        functions.add(Method(methodRef, FieldAccessModifier.serialize(
+            FieldAccessModifier.Public,
+            FieldAccessModifier.Static,
+            FieldAccessModifier.Final
+        ), body))
+        return index
     }
 
-    fun addInst(vararg inst: Byte): CompiledFile {
-        for (b in inst) {
-            instructions.add(b)
-            instPtr++
-        }
-        return this
+    fun addInst(vararg bytes: Byte) {
+        instructions.addAll(bytes.toList())
     }
+
+    fun build(): List<Byte> {
+        return instructions.also { instructions.clear() }
+    }
+
+    fun getConst(id: Short) = constants[id.toInt()]
+
+    fun getFunc(id: Short) = functions[id.toInt()]
 
     fun toByteArray(): ByteArray {
         val array = mutableListOf<Byte>()
         array.addAll(FILE_HEADER)
-        array.add(constPtr)
-        for (const in constants) {
-            array.add(const.first)
-            array.addAll(const.second.toList())
+        array.addAll(constants.size.toBytes())
+
+        for (constant in constants) {
+            array.add(constant.enumType.id())
+            array.addAll(constant.size.toBytes())
+            array.addAll(constant.value)
         }
-        array.add(funcPtr)
+
+        array.addAll(functions.size.toBytes())
         for (func in functions) {
-            array.add(func.first)
-            array.addAll(func.second)
-            array.add(func.third.toByte())
+            array.addAll(func.methodRef.toByteList())
+            array.add(func.accessTag)
+            array.addAll(func.body)
         }
-        array.addAll(instructions)
+
         return array.toByteArray()
     }
 
     override fun toString(): String {
-        return "CompiledFile(constants=$constants, functions=$functions, instructions=$instructions)"
+        return "CompiledFile(constants=$constants, functions=$functions)"
+    }
+
+    data class ConstantEntry(
+        val enumType: ConstantType,
+        val index: Short,
+        val value: List<Byte>,
+        val size: Byte =
+            if (enumType != ConstantType.String)
+                enumType.size
+            else value.size.toByte(),
+    ) {
+        enum class ConstantType(val size: Byte) {
+            Int(1),
+            Float(2),
+            String(-1),
+            MethodRef(4),
+            Class(-1), // Reserved
+            Descriptor(-1),
+            ;
+            fun id() = ordinal.toByte()
+        }
+
+        override fun toString(): String {
+            return "ConstantEntry(enumType=$enumType, index=$index, value=$value, size=$size)"
+        }
+    }
+
+    data class Method(
+        val methodRef: Short, // CP Index
+        val accessTag: Byte, // Access Modifier
+        val body: List<Byte>
+    ) {
+        override fun toString(): String {
+            return "Method(methodRef=$methodRef, accessTag=$accessTag, body=$body)"
+        }
+    }
+
+    enum class FieldAccessModifier(val mask: Byte) {
+        Public(0x01),
+        Private(0x02),
+        Protected(0x04),
+        Static(0x08),
+        Final(0x0A),
+        ;
+        companion object {
+            fun serialize(vararg modifiers: FieldAccessModifier): Byte {
+                var res: Byte = 0
+                for (modifier in modifiers) {
+                    res = res or modifier.mask
+                }
+                return res
+            }
+        }
     }
 }

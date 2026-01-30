@@ -18,7 +18,7 @@ import yukifuri.script.compiler.visitor.bcgen.entry.symbol.VariableSym
 class Entry : Visitor {
     val table = SymbolTable()
 
-    val typeResolver = TypeResolver(table)
+    private val typeResolver = TypeResolver(table)
 
     fun exec(file: YFile) {
         registerBuiltins()

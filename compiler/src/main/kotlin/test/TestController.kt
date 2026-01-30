@@ -85,7 +85,7 @@ class TestController {
         println("Symbol: ${entry.table.global}")
         printProgress("SymbolTable", 2)
         val bcGen = BytecodeGenerator()
-        bcGen.exec(parser.file())
+        bcGen.exec(parser.file(), entry.table)
         println(bcGen.compiledFile())
         println(bcGen.toByteArray().toList())
     }

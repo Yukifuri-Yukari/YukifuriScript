@@ -9,6 +9,7 @@ import yukifuri.script.compiler.ast.function.YFunction
 import yukifuri.script.compiler.ast.literal.Literal
 import yukifuri.script.compiler.ast.structure.YFile
 import yukifuri.script.compiler.ast.visitor.Visitor
+import yukifuri.script.compiler.visitor.bcgen.entry.symbol.SymbolTable
 import yukifuri.script.compiler.visitor.bcgen.vm.CompiledFile
 import yukifuri.script.compiler.visitor.bcgen.vm.CompiledFile.ConstantEntry.ConstantType
 import kotlin.experimental.and
@@ -22,17 +23,19 @@ class BytecodeGenerator : Visitor {
 
         fun Short.toByteList(): List<Byte> {
             return listOf(
-                ((this.toInt() ushr 8) and 0xFF).toByte(),  // 无符号右移
+                ((this.toInt() ushr 8) and 0xFF).toByte(),
                 (this.toInt() and 0xFF).toByte()
             )
         }
     }
 
     private lateinit var file: YFile
+    private lateinit var symbolTable: SymbolTable
     private val bcf = CompiledFile()
 
-    fun exec(fileIn: YFile): BytecodeGenerator {
+    fun exec(fileIn: YFile, symbolTableIn: SymbolTable): BytecodeGenerator {
         file = fileIn
+        symbolTable = symbolTableIn
         for (decl in file.table.functions().values) {
             decl.accept(this)
         }
